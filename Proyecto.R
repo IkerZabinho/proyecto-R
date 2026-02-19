@@ -1,5 +1,5 @@
 library(tidyverse)
-life <- read.csv("lifeexp.csv")
+life <- read.csv("LifeExpectancyDataset.csv")
 life
 economic <- read.csv("economic_data.csv")
 economic
@@ -16,3 +16,4 @@ merged
 filtered <- merged %>% filter(Year>=2010 & Year<=2015)
 
 filtered
+
