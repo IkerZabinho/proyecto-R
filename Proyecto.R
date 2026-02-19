@@ -13,9 +13,11 @@ merged
 # the one between 2010 and 2015 (as those are the years that are coincidental
 # in both datasets), we filter it just in case there are missing values or any
 # false values that accidentally got in
-filtered <- merged %>% filter(Year>=2010 & Year<=2015)
+filtered <- merged %>% 
+  filter(Year>=2010 & Year<=2015) %>%
+  
 
 filtered
 
-#patatin patatero
-#golaso de messiiiii
+
+sum(is.na(life))
