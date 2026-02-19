@@ -21,3 +21,12 @@ filtered
 
 
 sum(is.na(life))
+
+#Variable type change in Status column, Character -> Logical
+
+filtered$Status[filtered$Status == "Developing"] = FALSE
+filtered$Status[filtered$Status == "Developed"] = TRUE
+
+filtered$Status = as.logical(filtered$Status)
+
+typeof(filtered$Status)
