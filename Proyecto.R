@@ -30,3 +30,4 @@ filtered$Status[filtered$Status == "Developed"] = TRUE
 filtered$Status = as.logical(filtered$Status)
 
 typeof(filtered$Status)
+
