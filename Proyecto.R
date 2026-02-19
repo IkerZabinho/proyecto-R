@@ -71,6 +71,11 @@ typeof(filtered$Status)
 print(dim(filtered))
 dim(merged)
 
+#Creation of new variable in Filtered and merged dataset: Above(TRUE)/Below(FALSE) average GDP
+#This variable comes from the difficulty to categorize countries economically
+average = mean(filtered$GDP..Current.USD., na.rm = TRUE)
 
+filtered = filtered %>%
+  mutate(above_below_average = ifelse(GDP..Current.USD. > average, TRUE, FALSE))
 
 
