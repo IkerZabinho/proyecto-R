@@ -74,7 +74,11 @@ filtered = filtered %>%
 
 #Here as we don´t want any country with NA values in neither of its variables
 #we remove all rows with any NA
-filtered_clean <- filtered %>% drop_na()
+filtered_clean <- filtered %>% 
+  drop_na()
+
+sum(is.na(filtered_clean))
+
 filtered_clean
 
 
@@ -127,6 +131,4 @@ ggplot(filtered_clean, aes(x = GDP, y = Life.expectancy..men.)) +
   labs(title = "Preston Curve Men: Life Expectancy vs GDP",
        x = "GDP",
        y = "Average Life Expectancy (years)")
-
-
 
