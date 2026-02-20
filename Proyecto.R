@@ -1,4 +1,4 @@
-#We load necessary libraries
+#We load all the necessary libraries
 library(tidyverse)
 library(tidyr)
 
@@ -67,10 +67,10 @@ filtered$Status = as.logical(filtered$Status)
 #Creation of new variable in Filtered and merged dataset: Above(TRUE)/Below(FALSE) average GDP
 #This variable comes from the difficulty to categorize countries economically
 
-average = mean(filtered$GDP..Current.USD., na.rm = TRUE)
+average = mean(filtered$GDP, na.rm = TRUE)
 
 filtered = filtered %>%
-  mutate(above_below_average = ifelse(GDP..Current.USD. > average, TRUE, FALSE))
+  mutate(above_below_average = ifelse(GDP > average, TRUE, FALSE))
 
 #Here as we don´t want any country with NA values in neither of its variables
 #we remove all rows with any NA
@@ -80,6 +80,10 @@ filtered_clean <- filtered %>%
 sum(is.na(filtered_clean))
 
 filtered_clean
+
+#Elimination of irrelevant variable
+
+filtered_clean$GDP.per.Capita..Current.USD. = NULL
 
 
 #Creation of new variable in Filtered and merged dataset: Above(TRUE)/Below(FALSE) average GDP
@@ -132,3 +136,20 @@ ggplot(filtered_clean, aes(x = GDP, y = Life.expectancy..men.)) +
        x = "GDP",
        y = "Average Life Expectancy (years)")
 
+
+
+###########################
+numeric_df <- filtered_clean[, sapply(filtered_clean, is.numeric)]
+
+x <- model.matrix(~ Life.expectancy..men. + Life.expectancy.women.,
+                  data = filtered_clean)
+
+y <- filtered_clean$GDP
+
+solve(t(x) %*% x) %*% t(x) %*% y
+
+mod <- lm(y ~ x-1,
+          data = filtered_clean)
+
+mod_s <- summary(mod)
+names(mod_s)
