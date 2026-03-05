@@ -123,5 +123,6 @@ ggplot(filtered, aes(x = GDP, y = Life.expectancy..men.)) +
   labs(title = "Preston Curve Men: Life Expectancy vs GDP",
        x = "GDP",
        y = "Average Life Expectancy (years)")
+filtered
 
 
