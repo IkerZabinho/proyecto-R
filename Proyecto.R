@@ -153,3 +153,32 @@ mod <- lm(y ~ x-1,
 
 mod_s <- summary(mod)
 names(mod_s)
+
+######Deliverable 2 - Zirriborrue
+model <- lm(Life.expectancy..men. ~ GDP + Schooling + HIV.AIDS + Infant.deaths,
+            data = filtered_clean)
+summary(model)
+#When all variables are at 0, beta0 (men's life expectancy) has an estimate of about 58.5
+#Beta2 (schooling) is 0.77, which means that a one-year increment of schooling increases
+# life expectancy in 0.77yrs.
+#As all pvalues are above 0.05, we don't reject H0 for any of the values, which means 
+# none of these variables are significative enough for life expectancy.
+confint(model)
+plot(model)
+#en resumen QQn s tipoa eiteik bñ eztek oso utille
+full_model <- lm(Life.expectancy..men. ~ ., data = filtered_clean)
+
+summary(full_model)
+best_model <- step(full_model) 
+
+summary(best_model) #This is to see ALL of the variables
+
+modelzirr <- lm(Life.expectancy..men. ~ 
+                        Schooling + GDP + thinness.5.9.years + Alcohol + 
+                        Current.Account.Balance....GDP., 
+                      data = filtered_clean)
+
+summary(modelzirr) 
+plot(modelzirr)
+
+
