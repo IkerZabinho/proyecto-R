@@ -57,7 +57,7 @@ new_names <- c("Country",                         "Year",                       
                "country_id",                      "InflationCPI",               "GDPCurrentUSD",              
                 "UnemploymentRate",         "InterestRateReal",        
                "InflationGDPDeflator",     "GDPGrowthAnnual",           "CurrentAccountBalanceGDP",
-               "GovernmentExpenseOfGDP.",   "GovernmentRevenueOfGDP.",   "Tax.RevenueOfGDP",
+               "GovernmentExpenseOfGDP",   "GovernmentRevenueOfGDP",   "Tax.RevenueOfGDP",
                "GrossNationalIncomeUSD")
 
 merged <- setNames(merged, new_names)
