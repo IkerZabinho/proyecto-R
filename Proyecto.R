@@ -73,9 +73,9 @@ filtered = filtered %>%
   mutate(above_below_average = ifelse(GDP > average, TRUE, FALSE))
 
 #Here as we don´t want any country with NA values in neither of its variables
-#we remove all rows with any NA
-filtered_clean <- filtered %>% 
-  drop_na()
+
+filtered_clean <- filtered #We had previously removed all rows with NA but we've seen it's not useful
+# and it gives us more inconvenients as we have far less countries to analyse
 
 sum(is.na(filtered_clean))
 
@@ -155,30 +155,29 @@ mod_s <- summary(mod)
 names(mod_s)
 
 ######Deliverable 2 - Zirriborrue
-model <- lm(Life.expectancy..men. ~ GDP + Schooling + HIV.AIDS + Infant.deaths,
-            data = filtered_clean)
-summary(model)
-#When all variables are at 0, beta0 (men's life expectancy) has an estimate of about 58.5
-#Beta2 (schooling) is 0.77, which means that a one-year increment of schooling increases
-# life expectancy in 0.77yrs.
-#As all pvalues are above 0.05, we don't reject H0 for any of the values, which means 
-# none of these variables are significative enough for life expectancy.
-confint(model)
-plot(model)
 #en resumen QQn s tipoa eiteik bñ eztek oso utille
-full_model <- lm(Life.expectancy..men. ~ ., data = filtered_clean)
+full_model <- lm(GDP ~ ., data = filtered_clean)
 
 summary(full_model)
 best_model <- step(full_model) 
 
 summary(best_model) #This is to see ALL of the variables
 
-modelzirr <- lm(Life.expectancy..men. ~ 
-                        Schooling + GDP + thinness.5.9.years + Alcohol + 
-                        Current.Account.Balance....GDP., 
-                      data = filtered_clean)
 
-summary(modelzirr) 
-plot(modelzirr)
+cor_matrix <- cor(numeric_df)
+cor_matrix[cor_matrix == 1] <- NA
+cor_df <- as.data.frame(as.table(cor_matrix))
+
+cor_df <- cor_df[!is.na(cor_df$Freq), ]
+
+cor_df <- cor_df[order(-abs(cor_df$Freq)), ]
+
+head(cor_df, 100)
+ggplot(filtered_clean, aes(x = Alcohol, y = Schooling)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "red", se = FALSE) +
+  labs(title = paste("Cor between schooling and alcohol:", round(cor(filtered_clean$Alcohol, filtered_clean$Schooling), 2))) +
+  theme_minimal() 
+
 
 
