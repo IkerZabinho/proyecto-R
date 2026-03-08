@@ -181,5 +181,3 @@ modelzirr <- lm(Life.expectancy..men. ~
 
 summary(modelzirr) 
 plot(modelzirr)
-
-
