@@ -159,9 +159,9 @@ names(mod_s)
 full_model <- lm(GDP ~ ., data = filtered_clean)
 
 summary(full_model)
-best_model <- step(full_model) 
+#best_model <- step(full_model) 
 
-summary(best_model) #This is to see ALL of the variables
+#summary(best_model) #This is to see ALL of the variables
 
 
 cor_matrix <- cor(numeric_df)

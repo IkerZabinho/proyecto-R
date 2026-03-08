@@ -48,7 +48,7 @@ names(merged)
 
 new_names <- c("Country",                         "Year",                            "Status",                         
                "LifeExpectancyMen",           "LifeExpectancyWomen",          "AdultMortalityMen",          
-               "AdultMortalityWomen.",         "InfantDeaths",                   "Alcohol",                        
+               "AdultMortalityWomen",         "InfantDeaths",                   "Alcohol",                        
                "PercentageExpenditure",          "HepatitisBMen",                "HepatitisBWomen",             
                "Measles",                         "BMI",                             "UnderFiveDeaths",              
                "Polio",                           "TotalExpenditure",               "Diphtheria",                     
@@ -112,4 +112,26 @@ plot(modelo4, 5)
 AIC(full_model, modelo2, modelo3, modelo31, modelo4)
 BIC(full_model, modelo2, modelo3, modelo31, modelo4)
 
+#Backward elimination in order to find good predictors for the thinnes in teens
 
+merged_numeric <- merged[,sapply(merged, is.numeric)]
+
+merged_numeric <- merged_numeric %>%
+  drop_na()
+
+ss1 <- lm(ThinnessTeens ~ ., data = merged_numeric)
+summary(ss1)
+plot(ss1, 5)
+
+#As the value of r^2 is so high, we can say that we can find good predictors
+#First of all we are going to eliminate the columns that dont make sense
+#and eliminate the outliers that we can see in the qq plot
+
+merged_numeric <- merged_numeric[-c(190, 147),]
+
+merged_numeric <- merged_numeric %>%
+  select(-Year, -AdultMortalityMen, -AdultMortalityWomen)
+
+ss12 <- lm(ThinnessTeens ~ ., data = merged_numeric)
+summary(ss12)
+plot(ss12, 5)
