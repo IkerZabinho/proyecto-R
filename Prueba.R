@@ -68,49 +68,49 @@ merged$Status = as.logical(merged$Status)
 #####
 numeric_df <- filtered_clean[, sapply(filtered_clean, is.numeric)]
 
-# ######Deliverable 2 - Zirriborrue
-# #backward eliminationen prueba
-# df_modelo <- merged %>%
-#   select(Schooling, Alcohol, BMI, HIV, GDPCurrentUSD, 
-#          AdultMortalityMen, InfantDeaths, IncomeComposition, 
-#          UnemploymentRate, InflationCPI) %>%
-#   drop_na() 
-# 
-# full_model <- lm(Schooling ~  Alcohol+ BMI+ HIV+ GDPCurrentUSD+ 
-#                  AdultMortalityMen+ InfantDeaths+ IncomeComposition+
-#                  UnemploymentRate+ InflationCPI, data = merged)
-# summary(full_model)
-# plot(full_model,5)
-# #mrsquared 0.8414, ars 0.8394, quitamos gdp al ser el pvalor mas alto
-# modelo2 <- lm(Schooling ~  Alcohol+ BMI+ HIV+ 
-#                 AdultMortalityMen+ InfantDeaths+ IncomeComposition+
-#                 UnemploymentRate+ InflationCPI, data = merged)
-# summary(modelo2)
-# plot(modelo2, 5)
-# # mismo mrs, ars 0.8396, unemployment fuera 
-# modelo3 <- lm(Schooling ~  Alcohol+ BMI+ HIV+ 
-#                 AdultMortalityMen+ InfantDeaths+ IncomeComposition+
-#                 InflationCPI, data = merged)
-# summary(modelo3)
-# plot(modelo3, 5)
-# #hemen ya mrs 0.8112, ars 0.8095, 
-# which.max(cooks.distance(modelo3))
-# #al ver que ha bajado, identificamos los outliers (nos ha llamado la atención el 349 en está iteración, y el 108 que esta en todas)
-# df_sin_outliers <- merged[-c(108,349), ]
-# modelo31 <- lm(Schooling ~  Alcohol+ BMI+ HIV+ 
-#                 AdultMortalityMen+ InfantDeaths+ IncomeComposition+
-#                 InflationCPI, data = df_sin_outliers)
-# summary(modelo31)
-# plot(modelo31, 5)
-# #aquí ya vemos q sube mrs a 0.8543, ars 0.8529 (máximo hasta ahora). ahora vemos aumento de pvalor en BMI, quitamos
-# modelo4 <- lm(Schooling ~  Alcohol+ HIV+ 
-#                  AdultMortalityMen+ InfantDeaths+ IncomeComposition+
-#                  InflationCPI, data = df_sin_outliers)
-# summary(modelo4)
-# plot(modelo4, 5)
-# #tiramos con AIC y BIC
-# AIC(full_model, modelo2, modelo3, modelo31, modelo4)
-# BIC(full_model, modelo2, modelo3, modelo31, modelo4)
+######Deliverable 2 - Zirriborrue
+#backward eliminationen prueba
+df_modelo <- merged %>%
+  select(Schooling, Alcohol, BMI, HIV, GDPCurrentUSD,
+         AdultMortalityMen, InfantDeaths, IncomeComposition,
+         UnemploymentRate, InflationCPI) %>%
+  drop_na()
+
+full_model <- lm(Schooling ~  Alcohol+ BMI+ HIV+ GDPCurrentUSD+
+                 AdultMortalityMen+ InfantDeaths+ IncomeComposition+
+                 UnemploymentRate+ InflationCPI, data = merged)
+summary(full_model)
+plot(full_model,5)
+#mrsquared 0.8414, ars 0.8394, quitamos gdp al ser el pvalor mas alto
+modelo2 <- lm(Schooling ~  Alcohol+ BMI+ HIV+
+                AdultMortalityMen+ InfantDeaths+ IncomeComposition+
+                UnemploymentRate+ InflationCPI, data = merged)
+summary(modelo2)
+plot(modelo2, 5)
+# mismo mrs, ars 0.8396, unemployment fuera
+modelo3 <- lm(Schooling ~  Alcohol+ BMI+ HIV+
+                AdultMortalityMen+ InfantDeaths+ IncomeComposition+
+                InflationCPI, data = merged)
+summary(modelo3)
+plot(modelo3, 5)
+#hemen ya mrs 0.8112, ars 0.8095,
+which.max(cooks.distance(modelo3))
+#al ver que ha bajado, identificamos los outliers (nos ha llamado la atención el 349 en está iteración, y el 108 que esta en todas)
+df_sin_outliers <- merged[-c(108,349), ]
+modelo31 <- lm(Schooling ~  Alcohol+ BMI+ HIV+
+                AdultMortalityMen+ InfantDeaths+ IncomeComposition+
+                InflationCPI, data = df_sin_outliers)
+summary(modelo31)
+plot(modelo31, 5)
+#aquí ya vemos q sube mrs a 0.8543, ars 0.8529 (máximo hasta ahora). ahora vemos aumento de pvalor en BMI, quitamos
+modelo4 <- lm(Schooling ~  Alcohol+ HIV+
+                 AdultMortalityMen+ InfantDeaths+ IncomeComposition+
+                 InflationCPI, data = df_sin_outliers)
+summary(modelo4)
+plot(modelo4, 5)
+#tiramos con AIC y BIC
+AIC(full_model, modelo2, modelo3, modelo31, modelo4)
+BIC(full_model, modelo2, modelo3, modelo31, modelo4)
 
 #Backward elimination in order to find good predictors for the thinnes in teens
 
