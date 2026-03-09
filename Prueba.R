@@ -135,3 +135,114 @@ merged_numeric <- merged_numeric %>%
 ss12 <- lm(ThinnessTeens ~ ., data = merged_numeric)
 summary(ss12)
 plot(ss12, 5)
+
+######TETASEN PARTIE
+#Backward elimination in order to find good predictors for the thinnes in teens
+
+merged_numeric <- merged[,sapply(merged, is.numeric)]
+
+merged_numeric <- merged_numeric %>%
+  select(-ThinnessKids) %>%
+  drop_na()
+
+ss1 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
+summary(ss1)
+plot(ss1, 5)
+
+#As the value of r^2 is so high, we can say that we can find good predictors
+#First of all we are going to eliminate the columns that dont make sense
+#and eliminate the outliers that we can see in the qq plot
+
+merged_numeric <- merged_numeric[-c(190, 147),]
+
+merged_numeric <- merged_numeric %>%
+  select(-Year)
+
+ss12 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
+summary(ss12)
+plot(ss12, 5)
+
+#This done, we are going to start iterating in the model with the backwad elimination method
+#with the step function which computes the backward elimination method based on the AIC method
+
+model_after_elimination <- step(ss12, direction = "backward")
+
+summary(model_after_elimination)
+
+plot(model_after_elimination, 5)
+
+#So we get that the covariates that work as predictor for the thinnes in teens are:
+#InfantDeaths, Alcohol, Measles, UnderFiveDeaths, TotalExpenditure, Pôpulation, ThinnessKids(of course), GDPCurrentUSD, and the GrossNationalIncomeUSD
+
+
+
+
+
+######ZABAN PARTIE
+incomen_modelue <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
+                      AdultMortalityMen + InfantDeaths + Alcohol + 
+                      BMI + TotalExpenditure + UnemploymentRate + 
+                      Status + ThinnessTeens + Population + 
+                      InflationCPI + Measles + Polio,
+                    data = merged)
+
+summary(incomen_modelue)
+
+# R-squared is = 0.7242 and Adjusted R-squared is = 0.7184
+# Problem: many variables are not significant (p > 0.05)
+
+# We remove AdultMortalityMen (p = 0.634, not significant)
+incomen_modelue1 <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
+                        InfantDeaths + Alcohol + 
+                        BMI + TotalExpenditure + UnemploymentRate + 
+                        Status + ThinnessTeens + Polio,
+                      data = merged)
+
+summary(incomen_modelue1)
+
+# R-squared is = 0.6687 and Adjusted R-squared is = 0.6642
+# InfantDeaths still not significant (p = 0.124)
+
+#Remove InfantDeaths (p = 0.124, not significant)
+incomen_modelue2 <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
+                         Alcohol + 
+                         BMI + TotalExpenditure + UnemploymentRate + 
+                         Status + ThinnessTeens + Polio,
+                       data = merged)
+
+summary(incomen_modelue2)
+#@R-squared is = 0.6676 and Adjusted R-squared is = 0.6636
+# All variables are now significant (p < 0.05) but R-squared went down compared to model 1
+
+#For this we try the log transformations
+# Some variables have skewed distributions
+# Log makes them more normal and improves the model
+merged_transform <- merged %>%
+  mutate(log_GDP = log(GDPCurrentUSD),
+         log_HIV = log(HIV),
+         log_Polio = log(Polio),
+         log_TotalExpenditure = log(TotalExpenditure),
+         log_Alcohol = log(Alcohol),
+         log_BMI = log(BMI),
+         log_UnemploymentRate = log(UnemploymentRate),
+         log_ThinnessTeens = log(ThinnessTeens)
+  )
+
+#We do a model with log transformations
+modelo_log <- lm(IncomeComposition ~ log_GDP + log_HIV + log_Alcohol + 
+                   log_BMI + log_TotalExpenditure + log_UnemploymentRate + 
+                   log_ThinnessTeens + log_Polio,
+                 data = merged_transform)
+
+summary(modelo_log)
+
+# R-squared is = 0.7361 and Adjusted R-squared is = 0.7332 
+#It is the best one until now
+
+# Compare all models
+AIC(incomen_modelue, incomen_modelue1, incomen_modelue2, modelo_log)
+BIC(incomen_modelue, incomen_modelue1, incomen_modelue2, modelo_log)
+# modelo_log has the lowest AIC and BIC so we can say it is the best model
+# modelo_log also has the HIGHEST Adjusted R-squared = 0.7332
+
+
