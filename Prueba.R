@@ -166,7 +166,7 @@ ss12 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
 summary(ss12)
 plot(ss12, 5)
 
->>>>>>> d5ce5d7b50a0fad8b69d4aabad768886b17df2af
+
 #This done, we are going to start iterating in the model with the backwad elimination method
 #with the step function which computes the backward elimination method based on the AIC method
 
@@ -178,9 +178,9 @@ plot(model_after_elimination, 5)
 
 #So we get that the covariates that work as predictor for the thinnes in teens are:
 #InfantDeaths, Alcohol, Measles, UnderFiveDeaths, TotalExpenditure, Pôpulation, ThinnessKids(of course), GDPCurrentUSD, and the GrossNationalIncomeUSD
-<<<<<<< HEAD
+
 plot(ss12, 5)
-=======
+
 
 
 
@@ -259,4 +259,3 @@ BIC(incomen_modelue, incomen_modelue1, incomen_modelue2, modelo_log)
 confint(modelo_log, level = 0.95)
 shapiro.test(residuals(modelo_log)) #therefore we should reject the null hypothesis?
 
->>>>>>> d5ce5d7b50a0fad8b69d4aabad768886b17df2af
