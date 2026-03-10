@@ -66,7 +66,6 @@ merged$Status[merged$Status == "Developing"] = FALSE
 merged$Status[merged$Status == "Developed"] = TRUE
 merged$Status = as.logical(merged$Status)
 #####
-
 ######Deliverable 2 - Zirriborrue
 
 #Backward elimination in order to find good predictors for the thinnes in teens
@@ -207,4 +206,3 @@ BIC(incomen_modelue, incomen_modelue1, incomen_modelue2, modelo_log)
 #we find the confidence intervals for the "winner" model, the one with the highest r-squared
 confint(modelo_log, level = 0.95)
 shapiro.test(residuals(modelo_log)) #therefore we should reject the null hypothesis?
-
