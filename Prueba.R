@@ -160,7 +160,7 @@ summary(incomen_modelue1)
 # InfantDeaths still not significant (p = 0.124)
 
 #Remove InfantDeaths (p = 0.124, not significant)
-incomen_modelue2 <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
+incomen_modelue2 <- lm(IncomeComposition ~ GDPCurrentUSD + 
                          Alcohol + 
                          BMI + TotalExpenditure + UnemploymentRate + 
                          Status + ThinnessTeens + Polio,
@@ -206,3 +206,4 @@ BIC(incomen_modelue, incomen_modelue1, incomen_modelue2, modelo_log)
 #we find the confidence intervals for the "winner" model, the one with the highest r-squared
 confint(modelo_log, level = 0.95)
 shapiro.test(residuals(modelo_log)) #therefore we should reject the null hypothesis?
+
