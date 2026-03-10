@@ -135,6 +135,7 @@ ggplot(filtered_clean, aes(x = GDP, y = Life.expectancy..men.)) +
   labs(title = "Preston Curve Men: Life Expectancy vs GDP",
        x = "GDP",
        y = "Average Life Expectancy (years)")
+filtered
 
 
 
@@ -179,5 +180,17 @@ ggplot(filtered_clean, aes(x = Alcohol, y = Schooling)) +
   labs(title = paste("Cor between schooling and alcohol:", round(cor(filtered_clean$Alcohol, filtered_clean$Schooling), 2))) +
   theme_minimal() 
 
+<<<<<<< HEAD
+summary(best_model) #This is to see ALL of the variables
+
+modelzirr <- lm(Life.expectancy..men. ~ 
+                        Schooling + GDP + thinness.5.9.years + Alcohol + 
+                        Current.Account.Balance....GDP., 
+                      data = filtered_clean)
+
+summary(modelzirr) 
+plot(modelzirr)
+=======
 
 
+>>>>>>> 5a94bbc9add6a1a257be8ba1dcaded9b27fe38e3

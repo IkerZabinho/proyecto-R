@@ -2,4 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
+<<<<<<< HEAD
 .RDataTmp
+=======
+Proyecto.R
+>>>>>>> 80d79b6f5fe0580e08dedb22711640335e78f3a9

@@ -133,7 +133,7 @@ merged_numeric <- merged_numeric[-c(190, 147),]
 merged_numeric <- merged_numeric %>%
   select(-Year)
 
-ss12 <- lm(ThinnessTeens ~ ., data = merged_numeric)
+ss12 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
 summary(ss12)
 plot(ss12, 5)
 
@@ -148,3 +148,4 @@ plot(model_after_elimination, 5)
 
 #So we get that the covariates that work as predictor for the thinnes in teens are:
 #InfantDeaths, Alcohol, Measles, UnderFiveDeaths, TotalExpenditure, Pôpulation, ThinnessKids(of course), GDPCurrentUSD, and the GrossNationalIncomeUSD
+plot(ss12, 5)
