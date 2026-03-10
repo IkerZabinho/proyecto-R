@@ -36,7 +36,7 @@ country_map <- c(
 
 life_expectancy_filtered <- life_expectancy %>% 
   mutate(Country = ifelse(Country %in% names(country_map),
-                          mapa_paises[Country], Country))%>%
+                          country_map[Country], Country))%>%
   select(-GDP)
 
 
@@ -66,7 +66,6 @@ merged$Status[merged$Status == "Developing"] = FALSE
 merged$Status[merged$Status == "Developed"] = TRUE
 merged$Status = as.logical(merged$Status)
 #####
-numeric_df <- filtered_clean[, sapply(filtered_clean, is.numeric)]
 
 ######Deliverable 2 - Zirriborrue
 
@@ -208,3 +207,4 @@ BIC(incomen_modelue, incomen_modelue1, incomen_modelue2, modelo_log)
 #we find the confidence intervals for the "winner" model, the one with the highest r-squared
 confint(modelo_log, level = 0.95)
 shapiro.test(residuals(modelo_log)) #therefore we should reject the null hypothesis?
+
