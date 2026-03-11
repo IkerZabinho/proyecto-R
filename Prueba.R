@@ -139,14 +139,30 @@ summary(ss12)
 plot(ss12, 5)
 plot(ss12, 1)
 
+<<<<<<< HEAD
 #Backward elimination in order to find good predictors for the thinnes in teens
+=======
 
+#==============================================================================
+#Backward elimination in order to find good predictors for the thinness in teens
+#==============================================================================
+>>>>>>> 61500ddb98b8e9b1e6b59024d1a807290f0e206d
+
+#First of all we select the numeric values from the merged dataset
 merged_numeric <- merged[,sapply(merged, is.numeric)]
 
+#Here we elimante the thinnesKids column because it doesnt make sense to having it
+#As well as the year column
 merged_numeric <- merged_numeric %>%
   select(-ThinnessKids, -Year) %>%
   drop_na()
 
+<<<<<<< HEAD
+=======
+mod1 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
+summary(mod1)
+plot(mod1, 5)
+>>>>>>> 61500ddb98b8e9b1e6b59024d1a807290f0e206d
 
 #As the value of r^2 is so high, we can say that we can find good predictors
 #First of all we are going to eliminate the columns that dont make sense
@@ -154,8 +170,13 @@ merged_numeric <- merged_numeric %>%
 
 merged_numeric <- merged_numeric[-c(190, 147),]
 
+<<<<<<< HEAD
 # merged_numeric <- merged_numeric %>%
 #   select(-Year)
+=======
+#merged_numeric <- merged_numeric %>%
+#  select(-Year)
+>>>>>>> 61500ddb98b8e9b1e6b59024d1a807290f0e206d
 
 ss12 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
 summary(ss12)
@@ -176,7 +197,11 @@ plot(model_after_elimination, 5)
 
 plot(ss12, 5)
 
+<<<<<<< HEAD
 
+=======
+######ZABAN PARTIE
+>>>>>>> 61500ddb98b8e9b1e6b59024d1a807290f0e206d
 incomen_modelue <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
                       AdultMortalityMen + InfantDeaths + Alcohol + 
                       BMI + TotalExpenditure + UnemploymentRate + 
