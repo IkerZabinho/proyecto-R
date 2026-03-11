@@ -139,18 +139,22 @@ summary(ss12)
 plot(ss12, 5)
 
 
-######TETASEN PARTIE
-#Backward elimination in order to find good predictors for the thinnes in teens
+#==============================================================================
+#Backward elimination in order to find good predictors for the thinness in teens
+#==============================================================================
 
+#First of all we select the numeric values from the merged dataset
 merged_numeric <- merged[,sapply(merged, is.numeric)]
 
+#Here we elimante the thinnesKids column because it doesnt make sense to having it
+#As well as the year column
 merged_numeric <- merged_numeric %>%
-  select(-ThinnessKids) %>%
+  select(-ThinnessKids, -Year) %>%
   drop_na()
 
-ss1 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
-summary(ss1)
-plot(ss1, 5)
+mod1 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
+summary(mod1)
+plot(mod1, 5)
 
 #As the value of r^2 is so high, we can say that we can find good predictors
 #First of all we are going to eliminate the columns that dont make sense
@@ -158,8 +162,8 @@ plot(ss1, 5)
 
 merged_numeric <- merged_numeric[-c(190, 147),]
 
-merged_numeric <- merged_numeric %>%
-  select(-Year)
+#merged_numeric <- merged_numeric %>%
+#  select(-Year)
 
 ss12 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
 summary(ss12)
@@ -179,11 +183,6 @@ plot(model_after_elimination, 5)
 #InfantDeaths, Alcohol, Measles, UnderFiveDeaths, TotalExpenditure, Pôpulation, ThinnessKids(of course), GDPCurrentUSD, and the GrossNationalIncomeUSD
 
 plot(ss12, 5)
-
-
-
-
-
 
 ######ZABAN PARTIE
 incomen_modelue <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
