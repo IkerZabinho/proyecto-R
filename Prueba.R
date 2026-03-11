@@ -153,9 +153,9 @@ merged_numeric <- merged[,sapply(merged, is.numeric)]
 
 #Here we elimante the thinnesKids column because it doesnt make sense to having it
 #As well as the year column
-merged_numeric <- merged_numeric %>%
-  select(-ThinnessKids, -Year) %>%
-  drop_na()
+ merged_numeric <- merged_numeric %>%
+   select(-ThinnessKids, -Year) %>%
+   drop_na()
 
 #We define the model with all the possible covariates
 
@@ -166,35 +166,24 @@ plot(mod1, 5)
 #As the value of r^2 is large, we can say that we can find good predictors,
 #and because of the p-value is so small (2.2e-16), we can say that there is
 #at least one good predictor for the thinnes in teens
-#in order to find them we eliminate the outliers that we can see in the qq plot
+#And as in the cooks distance plot we did before we didnt see any outliers, theres no need to eliminate nothing
 
-#merged_numeric <- merged_numeric[-c(190, 147),]
-
-#We compute the linear model after the elimination of outliers
-ss12 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
-summary(ss12)
-plot(ss12, 5)
+mod12 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
+summary(mod12)
+plot(mod12, 5)
 
 #This done, we are going to start iterating in the model with the backward elimination method
 
-#As the value of r^2 is so high, we can say that we can find good predictors
-#First of all we are going to eliminate the columns that dont make sense
-#and eliminate the outliers that we can see in the qq plot
-
-merged_numeric <- merged_numeric[-c(190, 147),]
-
-ss12 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
-summary(ss12)
-plot(ss12, 5)
-plot(ss12, 1)
-ss122 <- lm(ThinnessTeens ~ ., data = merged_numeric)
-plot(ss122, 1) #This is just to show the heteroscedascity in the original ThinnessTeens variable, without applying the square.
+#This part is just to show the heteroscedascity in the original ThinnessTeens variable, without applying the square.
 #It is not used anywhere else.
 
-#This done, we are going to start iterating in the model with the backwad elimination method
+provisional_model <- lm(ThinnessTeens ~ ., data = merged_numeric)
+plot(provisional_model, 1) 
+
+#This done, we are going to start iterating in the model with the backward elimination method
 #with the step function which computes the backward elimination method based on the AIC method
 
-model_after_elimination <- step(ss12, direction = "backward")
+model_after_elimination <- step(mod12, direction = "backward")
 
 summary(model_after_elimination)
 
@@ -204,11 +193,13 @@ names(model_after_elimination)
 
 model_after_elimination$terms
 
-#So we get that the covariates that work best as predictors for the thinnes in teens are:
+#So after the elimination we ended up with a r-squared value of 0.7893 which is large enough and
+#we also get that the covariates that work best as predictors for the ThinnessTeens variable are:
 #InfantDeaths, Alcohol, Measles, UnderFiveDeaths, TotalExpenditure, Pôpulation, ThinnessKids(of course), GDPCurrentUSD, and the GrossNationalIncomeUSD
 
-
-
+#==============================================================================
+#Backward elimination in order to find good predictors for the IncomeComposition
+#==============================================================================
 
 incomen_modelue <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
                       AdultMortalityMen + InfantDeaths + Alcohol + 
@@ -218,8 +209,10 @@ incomen_modelue <- lm(IncomeComposition ~ GDPCurrentUSD + HIV +
                     data = merged)
 
 summary(incomen_modelue)
+plot(incomen_modelue, 5)
 
 # R-squared is = 0.7242 and Adjusted R-squared is = 0.7184
+# We also didnt find any outliers in the dataset
 # Problem: many variables are not significant (p > 0.05)
 
 # We remove AdultMortalityMen (p = 0.634, not significant)
@@ -230,6 +223,7 @@ incomen_modelue1 <- lm(IncomeComposition ~ GDPCurrentUSD + HIV +
                       data = merged)
 
 summary(incomen_modelue1)
+plot(incomen_modelue1, 5)
 
 # R-squared is = 0.6687 and Adjusted R-squared is = 0.6642
 # InfantDeaths still not significant (p = 0.124)
@@ -242,8 +236,10 @@ incomen_modelue2 <- lm(IncomeComposition ~ GDPCurrentUSD +
                        data = merged)
 
 summary(incomen_modelue2)
-#@R-squared is = 0.6676 and Adjusted R-squared is = 0.6636
-# All variables are now significant (p < 0.05) but R-squared went down compared to model 1
+plot(incomen_modelue2, 5)
+
+#R-squared is = 0.6189 and Adjusted R-squared is = 0.6148
+# All variables are now significant (p < 0.125) but R-squared went down compared to model 1
 
 #For this we try the log transformations
 # Some variables have skewed distributions
