@@ -250,12 +250,11 @@ summary(modelo_log)
 # Compare all models
 AIC(incomen_modelue, incomen_modelue1, incomen_modelue2, modelo_log)
 BIC(incomen_modelue, incomen_modelue1, incomen_modelue2, modelo_log)
-# modelo_log has the lowest AIC and BIC so we can say it is the best model
 # modelo_log also has the HIGHEST Adjusted R-squared = 0.7332
 
 
 #CONFIDENCE INTERVALS - MOCK
 #we find the confidence intervals for the "winner" model, the one with the highest r-squared
-confint(modelo_log, level = 0.95)
-shapiro.test(residuals(modelo_log)) #therefore we should reject the null hypothesis?
+confint(model_after_elimination, level = 0.95)
+shapiro.test(residuals(model_after_elimination)) #therefore we should reject the null hypothesis?
 
