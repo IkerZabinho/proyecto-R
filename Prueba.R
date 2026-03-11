@@ -152,25 +152,24 @@ merged_numeric <- merged_numeric %>%
   select(-ThinnessKids, -Year) %>%
   drop_na()
 
+#We define the model with all the possible covariates
 mod1 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
 summary(mod1)
 plot(mod1, 5)
 
-#As the value of r^2 is so high, we can say that we can find good predictors
-#First of all we are going to eliminate the columns that dont make sense
-#and eliminate the outliers that we can see in the qq plot
+#As the value of r^2 is large, we can say that we can find good predictors,
+#and because of the p-value is so small (2.2e-16), we can say that there is
+#at least one good predictor for the thinnes in teens
+#in order to find them we eliminate the outliers that we can see in the qq plot
 
-merged_numeric <- merged_numeric[-c(190, 147),]
+#merged_numeric <- merged_numeric[-c(190, 147),]
 
-#merged_numeric <- merged_numeric %>%
-#  select(-Year)
-
+#We compute the linear model after the elimination of outliers
 ss12 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
 summary(ss12)
 plot(ss12, 5)
 
-
-#This done, we are going to start iterating in the model with the backwad elimination method
+#This done, we are going to start iterating in the model with the backward elimination method
 #with the step function which computes the backward elimination method based on the AIC method
 
 model_after_elimination <- step(ss12, direction = "backward")
@@ -179,10 +178,14 @@ summary(model_after_elimination)
 
 plot(model_after_elimination, 5)
 
-#So we get that the covariates that work as predictor for the thinnes in teens are:
+names(model_after_elimination)
+
+model_after_elimination$terms
+
+#So we get that the covariates that work best as predictors for the thinnes in teens are:
 #InfantDeaths, Alcohol, Measles, UnderFiveDeaths, TotalExpenditure, Pôpulation, ThinnessKids(of course), GDPCurrentUSD, and the GrossNationalIncomeUSD
 
-plot(ss12, 5)
+
 
 ######ZABAN PARTIE
 incomen_modelue <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
