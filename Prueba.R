@@ -67,7 +67,7 @@ merged$Status[merged$Status == "Developed"] = TRUE
 merged$Status = as.logical(merged$Status)
 #####
 ######Deliverable 2 - Zirriborrue
-<<<<<<< HEAD
+
 #backward eliminationen prueba
 df_modelo <- merged %>%
   select(Schooling, Alcohol, BMI, HIV, GDPCurrentUSD,
@@ -110,8 +110,8 @@ plot(modelo4, 5)
 #tiramos con AIC y BIC
 AIC(full_model, modelo2, modelo3, modelo31, modelo4)
 BIC(full_model, modelo2, modelo3, modelo31, modelo4)
-=======
->>>>>>> d5ce5d7b50a0fad8b69d4aabad768886b17df2af
+
+
 
 #Backward elimination in order to find good predictors for the thinnes in teens
 
@@ -138,8 +138,7 @@ ss12 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
 summary(ss12)
 plot(ss12, 5)
 
-<<<<<<< HEAD
-=======
+
 ######TETASEN PARTIE
 #Backward elimination in order to find good predictors for the thinnes in teens
 
