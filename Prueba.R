@@ -121,9 +121,9 @@ merged_numeric <- merged_numeric %>%
   select(-ThinnessKids) %>%
   drop_na()
 
-ss1 <- lm(ThinnessTeens ~ ., data = merged_numeric)
-summary(ss1)
-plot(ss1, 5)
+mod1 <- lm(ThinnessTeens ~ ., data = merged_numeric)
+summary(mod1)
+plot(mod1)
 
 #As the value of r^2 is so high, we can say that we can find good predictors
 #First of all we are going to eliminate the columns that dont make sense
@@ -137,11 +137,16 @@ merged_numeric <- merged_numeric %>%
 ss12 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
 summary(ss12)
 plot(ss12, 5)
+plot(ss12, 1)
+
+
+#Backward elimination in order to find good predictors for the thinnes in teens
 
 
 #==============================================================================
 #Backward elimination in order to find good predictors for the thinness in teens
 #==============================================================================
+
 
 #First of all we select the numeric values from the merged dataset
 merged_numeric <- merged[,sapply(merged, is.numeric)]
@@ -152,11 +157,16 @@ merged_numeric <- merged_numeric %>%
   select(-ThinnessKids, -Year) %>%
   drop_na()
 
+<<<<<<< HEAD
 #We define the model with all the possible covariates
+=======
+
+>>>>>>> e9824f02cfa8137a992695ce9a1627163473bb14
 mod1 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
 summary(mod1)
 plot(mod1, 5)
 
+<<<<<<< HEAD
 #As the value of r^2 is large, we can say that we can find good predictors,
 #and because of the p-value is so small (2.2e-16), we can say that there is
 #at least one good predictor for the thinnes in teens
@@ -170,6 +180,24 @@ summary(ss12)
 plot(ss12, 5)
 
 #This done, we are going to start iterating in the model with the backward elimination method
+=======
+
+#As the value of r^2 is so high, we can say that we can find good predictors
+#First of all we are going to eliminate the columns that dont make sense
+#and eliminate the outliers that we can see in the qq plot
+
+merged_numeric <- merged_numeric[-c(190, 147),]
+
+ss12 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
+summary(ss12)
+plot(ss12, 5)
+plot(ss12, 1)
+ss122 <- lm(ThinnessTeens ~ ., data = merged_numeric)
+plot(ss122, 1) #This is just to show the heteroscedascity in the original ThinnessTeens variable, without applying the square.
+#It is not used anywhere else.
+
+#This done, we are going to start iterating in the model with the backwad elimination method
+>>>>>>> e9824f02cfa8137a992695ce9a1627163473bb14
 #with the step function which computes the backward elimination method based on the AIC method
 
 model_after_elimination <- step(ss12, direction = "backward")
@@ -187,7 +215,7 @@ model_after_elimination$terms
 
 
 
-######ZABAN PARTIE
+
 incomen_modelue <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
                       AdultMortalityMen + InfantDeaths + Alcohol + 
                       BMI + TotalExpenditure + UnemploymentRate + 
@@ -254,8 +282,40 @@ BIC(incomen_modelue, incomen_modelue1, incomen_modelue2, modelo_log)
 # modelo_log also has the HIGHEST Adjusted R-squared = 0.7332
 
 
-#CONFIDENCE INTERVALS - MOCK
+#CONFIDENCE INTERVALS
 #we find the confidence intervals for the "winner" model, the one with the highest r-squared
 confint(model_after_elimination, level = 0.95)
-shapiro.test(residuals(model_after_elimination)) #therefore we should reject the null hypothesis?
+shapiro.test(residuals(model_after_elimination)) #therefore we should reject the null hypothesis (allegedly)
+plot(model_after_elimination, 1) #residuals vs fitted
+plot(model_after_elimination, 2) #qqplot
+plot(model_after_elimination, 5) #residuals vs leverage
 
+#PREDICTION
+set.seed(123) #to make sure that we get the same results after randomising
+prediction_indexes <- sample(1:nrow(merged_numeric), size = 0.8 * nrow(merged_numeric)) #we select a 80/20 distribution
+trainingdt <- merged_numeric[prediction_indexes,] #80% for the training part
+testdt <- merged_numeric[-prediction_indexes,] #20% for the testing part
+
+modeltraining <- lm(ThinnessTeens^2 ~ InfantDeaths + Alcohol + PercentageExpenditure
+                     + BMI + UnderFiveDeaths + TotalExpenditure + HIV + 
+                      IncomeComposition + InflationCPI + UnemploymentRate +
+                    InterestRateReal + InflationGDPDeflator + GDPGrowthAnnual +
+                      CurrentAccountBalanceGDP + GovernmentExpenseOfGDP +
+                      GovernmentRevenueOfGDP  + Tax.RevenueOfGDP, data = trainingdt) 
+#we adjust the model with the mentioned 80%, with the same variables as the ThinnessTeens model we have previously used 
+predictiontest <- predict(modeltraining, testdt) #we predict the other 20%
+
+valoresreales <- testdt$ThinnessTeens^2
+correlacion <- cor(predictiontest, valoresreales, use = "complete.obs") #it gives us a correlation of about 0.92 
+r2test <- correlacion^2 #it gives us a r^2 of approximately 0.85
+
+#Now, to find the confidence and prediction intervals
+newcountry <- testdt[1,] #we select the first country from our test group
+
+confidintr <- predict(modeltraining, newdata = newcountry, interval = "confidence")
+confidintr 
+
+predicintr <- predict(modeltraining, newdata = newcountry, interval = "prediction")
+predicintr
+
+sqrt(predicintr) #this would get us the prediction interval for the regular value of ThinnessTeens
