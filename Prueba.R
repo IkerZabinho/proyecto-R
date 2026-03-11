@@ -157,16 +157,12 @@ merged_numeric <- merged_numeric %>%
   select(-ThinnessKids, -Year) %>%
   drop_na()
 
-<<<<<<< HEAD
 #We define the model with all the possible covariates
-=======
 
->>>>>>> e9824f02cfa8137a992695ce9a1627163473bb14
 mod1 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
 summary(mod1)
 plot(mod1, 5)
 
-<<<<<<< HEAD
 #As the value of r^2 is large, we can say that we can find good predictors,
 #and because of the p-value is so small (2.2e-16), we can say that there is
 #at least one good predictor for the thinnes in teens
@@ -180,7 +176,6 @@ summary(ss12)
 plot(ss12, 5)
 
 #This done, we are going to start iterating in the model with the backward elimination method
-=======
 
 #As the value of r^2 is so high, we can say that we can find good predictors
 #First of all we are going to eliminate the columns that dont make sense
@@ -197,7 +192,6 @@ plot(ss122, 1) #This is just to show the heteroscedascity in the original Thinne
 #It is not used anywhere else.
 
 #This done, we are going to start iterating in the model with the backwad elimination method
->>>>>>> e9824f02cfa8137a992695ce9a1627163473bb14
 #with the step function which computes the backward elimination method based on the AIC method
 
 model_after_elimination <- step(ss12, direction = "backward")
