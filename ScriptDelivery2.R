@@ -126,6 +126,133 @@ plot(model_after_elimination, 5)
 
 model_after_elimination$terms 
 
-AIC(step(mod12, direction = "backward"))
 #So after the elimination we ended up with a r-squared value of 0.7893 which is large enough and
-#we also get that the covariates that work best as predictors for the ThinnessTeens variable are:
+#we also get 16 covariates that work well to predict ThinnessTeens
+
+
+#==============================================================================
+#Backward elimination in order to find good predictors for the IncomeComposition
+#==============================================================================
+
+incomen_modelue <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
+                        AdultMortalityMen + InfantDeaths + Alcohol + 
+                        BMI + TotalExpenditure + UnemploymentRate + 
+                        Status + ThinnessTeens + Population + 
+                        InflationCPI + Measles + Polio,
+                      data = merged)
+
+summary(incomen_modelue)
+plot(incomen_modelue, 5)
+
+# R-squared is = 0.7242 and Adjusted R-squared is = 0.7184
+# We also didnt find any outliers in the dataset
+# Problem: many variables are not significant (p > 0.05)
+
+# We remove AdultMortalityMen (p = 0.634, not significant)
+incomen_modelue1 <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
+                         InfantDeaths + Alcohol + 
+                         BMI + TotalExpenditure + UnemploymentRate + 
+                         Status + ThinnessTeens + Polio,
+                       data = merged)
+
+summary(incomen_modelue1)
+plot(incomen_modelue1, 5)
+
+# R-squared is = 0.6687 and Adjusted R-squared is = 0.6642
+# InfantDeaths still not significant (p = 0.124)
+
+#Remove InfantDeaths (p = 0.124, not significant)
+incomen_modelue2 <- lm(IncomeComposition ~ GDPCurrentUSD + 
+                         Alcohol + 
+                         BMI + TotalExpenditure + UnemploymentRate + 
+                         Status + ThinnessTeens + Polio,
+                       data = merged)
+
+summary(incomen_modelue2)
+plot(incomen_modelue2, 5)
+
+#R-squared is = 0.6189 and Adjusted R-squared is = 0.6148
+# All variables are now significant (p < 0.125) but R-squared went down compared to model 1
+
+#For this we try the log transformations
+# Some variables have skewed distributions
+# Log makes them more normal and improves the model
+merged_transform <- merged %>%
+  mutate(log_GDP = log(GDPCurrentUSD),
+         log_HIV = log(HIV),
+         log_Polio = log(Polio),
+         log_TotalExpenditure = log(TotalExpenditure),
+         log_Alcohol = log(Alcohol),
+         log_BMI = log(BMI),
+         log_UnemploymentRate = log(UnemploymentRate),
+         log_ThinnessTeens = log(ThinnessTeens)
+  )
+
+#We do a model with log transformations
+modelo_log <- lm(IncomeComposition ~ log_GDP + log_HIV + log_Alcohol + 
+                   log_BMI + log_TotalExpenditure + log_UnemploymentRate + 
+                   log_ThinnessTeens + log_Polio,
+                 data = merged_transform)
+
+summary(modelo_log)
+
+# R-squared is = 0.7361 and Adjusted R-squared is = 0.7332 
+#It is the best one until now
+
+# Compare all models
+AIC(incomen_modelue, incomen_modelue1, incomen_modelue2, modelo_log)
+BIC(incomen_modelue, incomen_modelue1, incomen_modelue2, modelo_log)
+# modelo_log also has the HIGHEST Adjusted R-squared = 0.7332
+
+#==============================================================================
+#CONFIDENCE INTERVALS
+#==============================================================================
+
+#we find the confidence intervals for the "winner" model, the one with the highest r-squared
+confint(model_after_elimination, level = 0.95)
+shapiro.test(residuals(model_after_elimination)) #therefore we should reject the null hypothesis (allegedly)
+plot(model_after_elimination, 1) #residuals vs fitted
+plot(model_after_elimination, 2) #qqplot
+plot(model_after_elimination, 5) #residuals vs leverage
+
+#==============================================================================
+#PREDICTION
+#==============================================================================
+
+set.seed(123) #to make sure that we get the same results after randomising
+
+prediction_indexes <- sample(1:nrow(merged_numeric), size = 0.8 * nrow(merged_numeric)) #we select a 80/20 distribution
+
+trainingdt <- merged_numeric[prediction_indexes,] #80% for the training part
+
+testdt <- merged_numeric[-prediction_indexes,] #20% for the testing part
+
+
+modeltraining <- lm(ThinnessTeens^2 ~ InfantDeaths + Alcohol + PercentageExpenditure
+                    + BMI + UnderFiveDeaths + TotalExpenditure + HIV + 
+                      IncomeComposition + InflationCPI + UnemploymentRate +
+                      InterestRateReal + InflationGDPDeflator + GDPGrowthAnnual +
+                      CurrentAccountBalanceGDP + GovernmentExpenseOfGDP +
+                      GovernmentRevenueOfGDP  + Tax.RevenueOfGDP, data = trainingdt) 
+
+#we adjust the model with the mentioned 80%, with the same variables as the ThinnessTeens model we have previously used 
+predictiontest <- predict(modeltraining, testdt) #we predict the other 20%
+
+
+valoresreales <- testdt$ThinnessTeens^2
+
+correlacion <- cor(predictiontest, valoresreales, use = "complete.obs") #it gives us a correlation of about 0.92 
+
+r2test <- correlacion^2 #it gives us a r^2 of approximately 0.85
+
+#Now, to find the confidence and prediction intervals
+newcountry <- testdt[1,] #we select the first country from our test group
+
+confidintr <- predict(modeltraining, newdata = newcountry, interval = "confidence")
+confidintr 
+
+predicintr <- predict(modeltraining, newdata = newcountry, interval = "prediction")
+predicintr
+
+sqrt(predicintr) #this would get us the prediction interval for the regular value of ThinnessTeens
+
