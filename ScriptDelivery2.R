@@ -100,8 +100,8 @@ plot(mod1, 5)
 plot(mod1, 1)
 plot(mod1, 2)
 
-#As in the residuals plot we see a lot of heterosdascity, we will use the log(ThinnessTeens)
-#In order to fix this heterosdascity
+#As in the residuals plot we see a lot of heterosdacity, we will use the log(ThinnessTeens)
+#In order to fix this heterodascity
 
 mod12 <- lm(log(ThinnessTeens) ~ ., data = merged_numeric)
 summary(mod12)
