@@ -143,10 +143,12 @@ summary(model_after_elimination)
 plot(model_after_elimination, 1)
 plot(model_after_elimination, 2)
 
-model_after_elimination$terms 
+model_after_elimination$terms
 
 #So after the elimination we ended up with a r-squared value of 0.6742 which is large enough and
-#we also get 15 covariates that work well to predict ThinnessTeens
+#we also get 15 covariates that work well to predict ThinnessTeens.
+#We also get an adjusted r^2 of 0.6587 which ends up having a really small difference
+#with the r^2 just 0.0155
 
 
 #==============================================================================
@@ -240,38 +242,34 @@ plot(model_after_elimination, 5) #residuals vs leverage
 
 set.seed(123) #to make sure that we get the same results after randomising
 
-prediction_indexes <- sample(1:nrow(merged_numeric), size = 0.8 * nrow(merged_numeric)) #we select a 80/20 distribution
+prediction_indexes <- sample(1:nrow(merged_numeric_noutliers2), size = 0.8 * nrow(merged_numeric_noutliers2)) #we select a 80/20 distribution
 
-trainingdt <- merged_numeric[prediction_indexes,] #80% for the training part
+trainingdt <- merged_numeric_noutliers2[prediction_indexes,] #80% for the training part
 
-testdt <- merged_numeric[-prediction_indexes,] #20% for the testing part
+testdt <- merged_numeric_noutliers2[-prediction_indexes,] #20% for the testing part
 
 
-modeltraining <- lm(ThinnessTeens^2 ~ InfantDeaths + Alcohol + PercentageExpenditure
-                    + BMI + UnderFiveDeaths + TotalExpenditure + HIV + 
-                      IncomeComposition + InflationCPI + UnemploymentRate +
-                      InterestRateReal + InflationGDPDeflator + GDPGrowthAnnual +
-                      CurrentAccountBalanceGDP + GovernmentExpenseOfGDP +
-                      GovernmentRevenueOfGDP  + Tax.RevenueOfGDP, data = trainingdt) 
+modeltraining <- lm(model_after_elimination, data = trainingdt) 
 
 #we adjust the model with the mentioned 80%, with the same variables as the ThinnessTeens model we have previously used 
 predictiontest <- predict(modeltraining, testdt) #we predict the other 20%
 
 
-valoresreales <- testdt$ThinnessTeens^2
+valoresreales <- log(testdt$ThinnessTeens)
 
 correlacion <- cor(predictiontest, valoresreales, use = "complete.obs") #it gives us a correlation of about 0.92 
 
-r2test <- correlacion^2 #it gives us a r^2 of approximately 0.85
+r2test <- correlacion^2 #it gives us a r^2 of approximately 0.61, which is really close to the one of the model(0.6587)
+r2test
 
 #Now, to find the confidence and prediction intervals
 newcountry <- testdt[1,] #we select the first country from our test group
 
 confidintr <- predict(modeltraining, newdata = newcountry, interval = "confidence")
-confidintr 
+exp(confidintr)
+#this would get us the confidence interval for the regular value of ThinnessTeens
 
 predicintr <- predict(modeltraining, newdata = newcountry, interval = "prediction")
-predicintr
-
-sqrt(predicintr) #this would get us the prediction interval for the regular value of ThinnessTeens
+exp(predicintr)
+#this would get us the prediction interval for the regular value of ThinnessTeens
 
