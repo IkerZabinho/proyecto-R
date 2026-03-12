@@ -203,33 +203,33 @@ plot(income_model2, 1)
 #R-squared is = 0.6384 and Adjusted R-squared is = 0.6345
 # All variables are now significant (p < 0.125) but R-squared went down compared to model 1
 
-model_log <- lm(IncomeComposition ~ GDPCurrentUSD + 
+income_model3 <- lm(IncomeComposition ~ GDPCurrentUSD + 
                   Alcohol + BMI + TotalExpenditure + UnemploymentRate + 
                   Status + ThinnessTeens + Polio,
                  data = merged)
 
-summary(model_log)
-plot(model_log, 5)
-plot(model_log, 2)
-plot(model_log, 1)
+summary(income_model3)
+plot(income_model3, 5)
+plot(income_model3, 2)
+plot(income_model3, 1)
 
 #Here there are some ouliers which end up having a value >3 in the residuals vs leverage plot
 #so we get rid of them
 
-noutlier <- merged[-c(900, 393, 78, 108, 640),]
+noutlier <- merged[!(rownames(merged) %in% c("900", "393", "78", "108", "640")), ]
 
 #We clearly see in the Q-Q plot and in the residuals plot that there are 2 outliers
 #the 900 and the 108 so we are going to eliminate them
 
-model_log1 <- lm(IncomeComposition ~ GDPCurrentUSD + 
+final_model <- lm(IncomeComposition ~ GDPCurrentUSD + 
                   Alcohol + BMI + TotalExpenditure + UnemploymentRate + 
                   Status + ThinnessTeens + Polio,
                 data = noutlier)
 
-summary(model_log)
-plot(model_log1, 5)
-plot(model_log1, 2)
-plot(model_log1, 1)
+summary(final_model)
+plot(final_model, 5)
+plot(final_model, 2)
+plot(final_model, 1)
 
 shapiro.test(residuals(model_log1))
 
@@ -240,8 +240,8 @@ shapiro.test(residuals(model_log1))
 #It is the best one until now
 
 # Compare all models
-AIC(income_model, income_model1, model_log, model_log1)
-BIC(income_model, income_model1, model_log, model_log1)
+AIC(income_model, income_model1, income_model2, income_model3, final_model)
+BIC(income_model, income_model1, income_model2, income_model3, final_model)
 # model_log also has the HIGHEST Adjusted R-squared = 0.7332
 
 #==============================================================================
