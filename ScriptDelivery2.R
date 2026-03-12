@@ -132,7 +132,7 @@ plot(mod122, 5)
 plot(mod122, 1)
 plot(mod122, 2)
 
-shapiro.test(residuals(model_after_elimination))
+shapiro.test(residuals(mod122))
 
 #Now that the heterosdascity problem is fixed, and also that the distribution
 #has been normalized as we can see a 0.7982 p-value in the shapiro test
@@ -231,7 +231,7 @@ plot(final_model, 5)
 plot(final_model, 2)
 plot(final_model, 1)
 
-shapiro.test(residuals(model_log1))
+shapiro.test(residuals(final_model))
 
 #After the removal of the outliers we see that the Q-Q plot has estabilized
 #and as in the shapiro test we get a value of 0.4152 we cannot reject that
