@@ -163,25 +163,19 @@ mod1 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
 summary(mod1)
 plot(mod1, 5)
 
-#As the value of r^2 is large, we can say that we can find good predictors,
-#and because of the p-value is so small (2.2e-16), we can say that there is
-#at least one good predictor for the thinnes in teens
-#And as in the cooks distance plot we did before we didnt see any outliers, theres no need to eliminate nothing
-
-mod12 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
-summary(mod12)
-plot(mod12, 5)
-
-#This done, we are going to start iterating in the model with the backward elimination method
-
 #This part is just to show the heteroscedascity in the original ThinnessTeens variable, without applying the square.
 #It is not used anywhere else.
 
 provisional_model <- lm(ThinnessTeens ~ ., data = merged_numeric)
 plot(provisional_model, 1) 
 
+#As the value of r^2 is large, we can say that we can find good predictors,
+#and because of the p-value is so small (2.2e-16), we can say that there is
+#at least one good predictor for the thinnes in teens
+#And as in the cooks distance plot we did before we didnt see any outliers, theres no need to eliminate nothing
+
 #This done, we are going to start iterating in the model with the backward elimination method
-#with the step function which computes the backward elimination method based on the AIC method
+#with the step function which computes the backward elimination method based on the AIC criteria
 
 model_after_elimination <- step(mod12, direction = "backward")
 
@@ -189,9 +183,7 @@ summary(model_after_elimination)
 
 plot(model_after_elimination, 5)
 
-names(model_after_elimination)
-
-model_after_elimination$terms
+model_after_elimination$terms 
 
 #So after the elimination we ended up with a r-squared value of 0.7893 which is large enough and
 #we also get that the covariates that work best as predictors for the ThinnessTeens variable are:
