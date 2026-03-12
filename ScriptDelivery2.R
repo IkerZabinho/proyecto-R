@@ -291,4 +291,3 @@ exp(confidintr)
 predicintr <- predict(modeltraining, newdata = newcountry, interval = "prediction")
 exp(predicintr)
 #this would get us the prediction interval for the regular value of ThinnessTeens
-
