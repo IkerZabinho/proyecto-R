@@ -142,7 +142,7 @@ income_modelo <- lm(IncomeComposition ~ GDPCurrentUSD + HIV +
                       data = merged)
 
 summary(income_modelo)
-plot(incomen_modelue, 5)
+plot(income_modelo, 5)
 
 # R-squared is = 0.7242 and Adjusted R-squared is = 0.7184
 # We also didnt find any outliers in the dataset
