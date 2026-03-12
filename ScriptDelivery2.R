@@ -97,37 +97,56 @@ merged_numeric <- merged_numeric %>%
 mod1 <- lm(ThinnessTeens ~ ., data = merged_numeric)
 summary(mod1)
 plot(mod1, 5)
+plot(mod1, 1)
+plot(mod1, 2)
 
-#As the R^2 value isnt that large, we tried to fix it by transformating the dependient variable, 
-#in this case we used the square of the variable we wanted to predict
+#As in the residuals plot we see a lot of heterosdascity, we will use the log(ThinnessTeens)
+#In order to fix this heterosdascity
 
-mod12 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
+mod12 <- lm(log(ThinnessTeens) ~ ., data = merged_numeric)
 summary(mod12)
 plot(mod12, 5)
+plot(mod12, 1)
+plot(mod12, 2)
 
-#This part is just to show the heteroscedascity in the original ThinnessTeens variable, without applying the square.
-#It is not used anywhere else.
+#Now that we can see that we fixed the heterosdascity a lot, we see that the values
+#310, 311, 275 are giving problems in the residual plot and in the qq-plot so we are 
+#going to discard them as they are outliers
 
-provisional_model <- lm(ThinnessTeens ~ ., data = merged_numeric)
-plot(provisional_model, 1) 
+merged_numeric_noutliers <- merged_numeric[-c(310, 311, 275),]
 
-#Now that the value of r^2 is larger (0.7933), we can say that we can find good predictors cause we describle nearly 80% of the variance,
-#and because of the p-value is so small (2.2e-16), we can say that there is at least one good predictor for the thinness in teens
-#And as in the residuals plot we did before we didnt detect any outliers, theres no need to eliminate nothing
+mod12 <- lm(log(ThinnessTeens) ~ ., data = merged_numeric_noutliers)
+summary(mod12)
+plot(mod12, 5)
+plot(mod12, 1)
+plot(mod12, 2)
 
-#This done, we are going to start iterating in the model with the backward elimination method
-#with the step function which computes the backward elimination method based on the AIC criteria
+#Now the points giving problems are 274, 273, 246 so we eliminate them aste previous ones
 
-model_after_elimination <- step(mod12, direction = "backward")
+merged_numeric_noutliers2 <- merged_numeric_noutliers[-c(274, 273, 246),]
+
+mod122 <- lm(log(ThinnessTeens) ~ ., data = merged_numeric_noutliers2)
+summary(mod12)
+plot(mod122, 5)
+plot(mod122, 1)
+plot(mod122, 2)
+
+
+#Now that the heterosdascity problem is fixed, and also that the distribution
+#has been normalized, we are ready to start with the backward elimination to 
+#find good predictors for ThinnesTeens
+
+model_after_elimination <- step(mod122, direction = "backward")
 
 summary(model_after_elimination)
 
-plot(model_after_elimination, 5)
+plot(model_after_elimination, 1)
+plot(model_after_elimination, 2)
 
 model_after_elimination$terms 
 
-#So after the elimination we ended up with a r-squared value of 0.7893 which is large enough and
-#we also get 16 covariates that work well to predict ThinnessTeens
+#So after the elimination we ended up with a r-squared value of 0.6742 which is large enough and
+#we also get 15 covariates that work well to predict ThinnessTeens
 
 
 #==============================================================================
