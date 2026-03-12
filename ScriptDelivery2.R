@@ -73,7 +73,8 @@ new_names <- c("Country",                         "Year",                       
 #Apply the new names
 merged <- setNames(merged, new_names)
 
-#Converting the status column into a logical one, FALSE meaning the country is developing while TRUE means it is developed
+#Converting the status column into a logical one, FALSE meaning the country is developing
+#while TRUE means it is developed
 merged$Status[merged$Status == "Developing"] = FALSE
 merged$Status[merged$Status == "Developed"] = TRUE
 merged$Status = as.logical(merged$Status)
@@ -100,8 +101,8 @@ plot(mod1, 5)
 plot(mod1, 1)
 plot(mod1, 2)
 
-#As in the residuals plot we see a lot of heterosdacity, we will use the log(ThinnessTeens)
-#In order to fix this heterodascity
+#As in the residuals plot we see a lot of heteroscedasticity, we will use the log(ThinnessTeens)
+#In order to fix this heteroscedasticity
 
 mod12 <- lm(log(ThinnessTeens) ~ ., data = merged_numeric)
 summary(mod12)
@@ -109,9 +110,9 @@ plot(mod12, 5)
 plot(mod12, 1)
 plot(mod12, 2)
 
-#Now that we can see that we fixed the heterosdascity a lot, we see that the values
+#Now that we can see that we fixed the heteroscedasticity a lot, we see that the values
 #310, 311, 275 are giving problems in the residual plot and in the qq-plot so we are 
-#going to discard them as they are outliers
+#going to discard them because they are outliers
 
 merged_numeric_noutliers <- merged_numeric[-c(310, 311, 275),]
 
@@ -121,7 +122,7 @@ plot(mod12, 5)
 plot(mod12, 1)
 plot(mod12, 2)
 
-#Now the points giving problems are 274, 273, 246 so we eliminate them aste previous ones
+#Now the points giving problems are 274, 273, 246 so we eliminate them as the previous ones
 
 merged_numeric_noutliers2 <- merged_numeric_noutliers[-c(274, 273, 246),]
 
@@ -131,10 +132,12 @@ plot(mod122, 5)
 plot(mod122, 1)
 plot(mod122, 2)
 
+shapiro.test(residuals(model_after_elimination))
 
 #Now that the heterosdascity problem is fixed, and also that the distribution
-#has been normalized, we are ready to start with the backward elimination to 
-#find good predictors for ThinnesTeens
+#has been normalized as we can see a 0.7982 p-value in the shapiro test
+#and the Q-Q plot seems to follow a normal distribution, we are ready to
+#start with the backward elimination to find good predictors for ThinnesTeens
 
 model_after_elimination <- step(mod122, direction = "backward")
 
@@ -146,84 +149,100 @@ plot(model_after_elimination, 2)
 model_after_elimination$terms
 
 #So after the elimination we ended up with a r-squared value of 0.6742 which is large enough and
-#we also get 15 covariates that work well to predict ThinnessTeens.
-#We also get an adjusted r^2 of 0.6587 which ends up having a really small difference
-#with the r^2 just 0.0155
+#as we are dealing with health relaated data andwe also get 15 covariates that work well 
+#to predict ThinnessTeens. We also get an adjusted r^2 of 0.6587 which ends up having a 
+#really small difference with the r^2 just 0.0155 of difference
 
 
 #==============================================================================
 #Backward elimination in order to find good predictors for the IncomeComposition
 #==============================================================================
 
-income_modelo <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
+income_model <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
                         AdultMortalityMen + InfantDeaths + Alcohol + 
                         BMI + TotalExpenditure + UnemploymentRate + 
                         Status + ThinnessTeens + Population + 
                         InflationCPI + Measles + Polio,
                       data = merged)
 
-summary(income_modelo)
-plot(income_modelo, 5)
+summary(income_model)
+plot(income_model, 5)
+plot(income_model, 2)
+plot(income_model, 1)
 
 # R-squared is = 0.7242 and Adjusted R-squared is = 0.7184
-# We also didnt find any outliers in the dataset
-# Problem: many variables are not significant (p > 0.05)
+#We can find one outlier with the Q-Q and residual plots which is 108, we eliminate it 
 
 # We remove AdultMortalityMen (p = 0.634, not significant)
-income_modelo1 <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
+income_model1 <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
                          InfantDeaths + Alcohol + 
                          BMI + TotalExpenditure + UnemploymentRate + 
                          Status + ThinnessTeens + Polio,
                        data = merged)
 
-summary(income_modelo1)
-plot(income_modelo1, 5)
+summary(income_model1)
+plot(income_model1, 5)
+plot(income_model1, 2)
+plot(income_model1, 1)
 
-# R-squared is = 0.6687 and Adjusted R-squared is = 0.6642
+# R-squared is = 0.6748 and Adjusted R-squared is = 0.6704
 # InfantDeaths still not significant (p = 0.124)
 
 #Remove InfantDeaths (p = 0.124, not significant)
-income_modelo2 <- lm(IncomeComposition ~ GDPCurrentUSD + 
+income_model2 <- lm(IncomeComposition ~ GDPCurrentUSD + 
                          Alcohol + 
                          BMI + TotalExpenditure + UnemploymentRate + 
                          Status + ThinnessTeens + Polio,
                        data = merged)
 
-summary(income_modelo2)
-plot(income_modelo2, 5)
+summary(income_model2)
+plot(income_model2, 5)
+plot(income_model2, 2)
+plot(income_model2, 1)
 
-#R-squared is = 0.6189 and Adjusted R-squared is = 0.6148
+#R-squared is = 0.6384 and Adjusted R-squared is = 0.6345
 # All variables are now significant (p < 0.125) but R-squared went down compared to model 1
 
-#For this we try the log transformations
-# Some variables have skewed distributions
-# Log makes them more normal and improves the model
-merged_transform <- merged %>%
-  mutate(log_GDP = log(GDPCurrentUSD),
-         log_HIV = log(HIV),
-         log_Polio = log(Polio),
-         log_TotalExpenditure = log(TotalExpenditure),
-         log_Alcohol = log(Alcohol),
-         log_BMI = log(BMI),
-         log_UnemploymentRate = log(UnemploymentRate),
-         log_ThinnessTeens = log(ThinnessTeens)
-  )
+model_log <- lm(IncomeComposition ~ GDPCurrentUSD + 
+                  Alcohol + BMI + TotalExpenditure + UnemploymentRate + 
+                  Status + ThinnessTeens + Polio,
+                 data = merged)
 
-#We do a model with log transformations
-modelo_log <- lm(IncomeComposition ~ log_GDP + log_HIV + log_Alcohol + 
-                   log_BMI + log_TotalExpenditure + log_UnemploymentRate + 
-                   log_ThinnessTeens + log_Polio,
-                 data = merged_transform)
+summary(model_log)
+plot(model_log, 5)
+plot(model_log, 2)
+plot(model_log, 1)
 
-summary(modelo_log)
+#Here there are some ouliers which end up having a value >3 in the residuals vs leverage plot
+#so we get rid of them
 
+noutlier <- merged[-c(900, 393, 78, 108, 640),]
+
+#We clearly see in the Q-Q plot and in the residuals plot that there are 2 outliers
+#the 900 and the 108 so we are going to eliminate them
+
+model_log1 <- lm(IncomeComposition ~ GDPCurrentUSD + 
+                  Alcohol + BMI + TotalExpenditure + UnemploymentRate + 
+                  Status + ThinnessTeens + Polio,
+                data = noutlier)
+
+summary(model_log)
+plot(model_log1, 5)
+plot(model_log1, 2)
+plot(model_log1, 1)
+
+shapiro.test(residuals(model_log1))
+
+#After the removal of the outliers we see that the Q-Q plot has estabilized
+#and as in the shapiro test we get a value of 0.4152 we cannot reject that
+#this doesnt follow a normal distribution
 # R-squared is = 0.7361 and Adjusted R-squared is = 0.7332 
 #It is the best one until now
 
 # Compare all models
-AIC(income_modelo, income_modelo1, income_modelo2, modelo_log)
-BIC(income_modelo, income_modelo1, income_modelo2, modelo_log)
-# modelo_log also has the HIGHEST Adjusted R-squared = 0.7332
+AIC(income_model, income_model1, model_log, model_log1)
+BIC(income_model, income_model1, model_log, model_log1)
+# model_log also has the HIGHEST Adjusted R-squared = 0.7332
 
 #==============================================================================
 #CONFIDENCE INTERVALS
