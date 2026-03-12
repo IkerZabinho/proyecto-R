@@ -153,42 +153,42 @@ model_after_elimination$terms
 #Backward elimination in order to find good predictors for the IncomeComposition
 #==============================================================================
 
-incomen_modelue <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
+income_modelo <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
                         AdultMortalityMen + InfantDeaths + Alcohol + 
                         BMI + TotalExpenditure + UnemploymentRate + 
                         Status + ThinnessTeens + Population + 
                         InflationCPI + Measles + Polio,
                       data = merged)
 
-summary(incomen_modelue)
-plot(incomen_modelue, 5)
+summary(income_modelo)
+plot(income_modelo, 5)
 
 # R-squared is = 0.7242 and Adjusted R-squared is = 0.7184
 # We also didnt find any outliers in the dataset
 # Problem: many variables are not significant (p > 0.05)
 
 # We remove AdultMortalityMen (p = 0.634, not significant)
-incomen_modelue1 <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
+income_modelo1 <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
                          InfantDeaths + Alcohol + 
                          BMI + TotalExpenditure + UnemploymentRate + 
                          Status + ThinnessTeens + Polio,
                        data = merged)
 
-summary(incomen_modelue1)
-plot(incomen_modelue1, 5)
+summary(income_modelo1)
+plot(income_modelo1, 5)
 
 # R-squared is = 0.6687 and Adjusted R-squared is = 0.6642
 # InfantDeaths still not significant (p = 0.124)
 
 #Remove InfantDeaths (p = 0.124, not significant)
-incomen_modelue2 <- lm(IncomeComposition ~ GDPCurrentUSD + 
+income_modelo2 <- lm(IncomeComposition ~ GDPCurrentUSD + 
                          Alcohol + 
                          BMI + TotalExpenditure + UnemploymentRate + 
                          Status + ThinnessTeens + Polio,
                        data = merged)
 
-summary(incomen_modelue2)
-plot(incomen_modelue2, 5)
+summary(income_modelo2)
+plot(income_modelo2, 5)
 
 #R-squared is = 0.6189 and Adjusted R-squared is = 0.6148
 # All variables are now significant (p < 0.125) but R-squared went down compared to model 1
@@ -219,8 +219,8 @@ summary(modelo_log)
 #It is the best one until now
 
 # Compare all models
-AIC(incomen_modelue, incomen_modelue1, incomen_modelue2, modelo_log)
-BIC(incomen_modelue, incomen_modelue1, incomen_modelue2, modelo_log)
+AIC(income_modelo, income_modelo1, income_modelo2, modelo_log)
+BIC(income_modelo, income_modelo1, income_modelo2, modelo_log)
 # modelo_log also has the HIGHEST Adjusted R-squared = 0.7332
 
 #==============================================================================
