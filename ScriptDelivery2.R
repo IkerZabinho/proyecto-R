@@ -291,3 +291,49 @@ exp(confidintr)
 predicintr <- predict(modeltraining, newdata = newcountry, interval = "prediction")
 exp(predicintr)
 #this would get us the prediction interval for the regular value of ThinnessTeens
+
+
+
+summary(model_after_elimination)
+
+
+library(ggplot2)
+library(tidyverse)
+library(ggrepel)
+library(scales)
+
+
+df_preston_full <- merged %>%
+  group_by(Country) %>% filter(!(Country %in% c("Canada", "China", "Sweden", "Norway"))) %>%
+  summarise(
+
+    Life_Exp = mean(c(LifeExpectancyMen, LifeExpectancyWomen), na.rm = TRUE),
+    GDP_Total = mean(GDPCurrentUSD, na.rm = TRUE),
+    Schooling = mean(Schooling, na.rm = TRUE),
+    Status = first(Status)
+  ) %>% filter(!is.na(Life_Exp), !is.na(GDP_Total), GDP_Total > 0)
+
+ggplot(df_preston_full, aes(x = GDP_Total, y = Life_Exp , color = Status, label = Country)) +
+  geom_point(aes(size = Schooling), alpha = 0.5) + 
+  scale_x_log10(labels = label_number(suffix = " B", scale = 1e-9)) + 
+  geom_smooth(aes(group = 1), method = "loess", color = "black", linetype = "dashed", se = FALSE) +
+  geom_text_repel(size = 2.5, max.overlaps = 15, show.legend = FALSE) +
+  scale_size(range = c(1, 8)) +
+  scale_color_manual(values = c("TRUE" = "#00BFC4", "FALSE" = "#F8766D"), 
+                     labels = c("Desarrollado", "En Desarrollo")) +
+  labs(
+    title = "Preston Curve. Does money buy life?",
+    subtitle = paste("(Average 2010-2015)"),
+    x = "Total GDP - USD (Billions)",
+    y = "Life Expectancy (Years)",
+    size = "Years of Schooling",
+    color = "Status"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+cor(df_preston_full$Life_Exp, df_preston_full$GDP_Total) #Slightly positive correlation which proves our point.
+
+
+modelo_mortalidad <- lm(AdultMortalityMen ~ UnemploymentRate * Status, data = merged)
+
+summary(modelo_mortalidad) #NO CORRELATION.
