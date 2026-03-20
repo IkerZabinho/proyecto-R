@@ -337,3 +337,53 @@ cor(df_preston_full$Life_Exp, df_preston_full$GDP_Total) #Slightly positive corr
 modelo_mortalidad <- lm(AdultMortalityMen ~ UnemploymentRate * Status, data = merged)
 
 summary(modelo_mortalidad) #NO CORRELATION.
+
+# LOGISTIC REGRESSION
+
+
+log_data <- merged %>% 
+  select(Status, LifeExpectancyMen, LifeExpectancyWomen, GDPCurrentUSD, Schooling, InfantDeaths) %>% 
+  drop_na() #This is the model we are going to use
+
+#Train-Test, 80/20, just like the linear regression model.
+set.seed(123)
+prediction_indexes_log <- sample(1:nrow(log_data), size = 0.8 * nrow(log_data))
+
+train_log <- log_data[prediction_indexes_log, ]
+test_log <- log_data[-prediction_indexes_log, ]
+
+# Model training
+# TRUE (1) = Developed, FALSE (0) = Developing
+logistic_model <- glm(Status ~ LifeExpectancyMen + LifeExpectancyWomen + GDPCurrentUSD + Schooling + InfantDeaths, 
+                      data = train_log, 
+                      family = "binomial")
+
+summary(logistic_model)
+
+# 4. Hacemos las predicciones con el 20% de test We predict with the remaining 20%
+# type = "response" gives us the probability of being developed (0 to 1)
+prob_predictions <- predict(logistic_model, newdata = test_log, type = "response")
+
+# We set the threshold at 0.5, to make them either 1 or 0.
+# If the probability exceeds 0.5, TRUE (1), otherwise it is FALSE (0)
+class_predictions <- ifelse(prob_predictions > 0.5, 1, 0)
+actual_status <- ifelse(test_log$Status == TRUE, 1, 0)
+
+# 5. CLASSIFICATION TABLE
+conf_matrix <- table(Predicted = class_predictions, Actual = actual_status)
+print("Classification Table:")
+print(conf_matrix)
+
+# We take out the values from the table
+TN <- conf_matrix[1, 1] # True Negatives (We got it right, it is developing)
+FN <- conf_matrix[1, 2] # False Negatives (It was developed, but we said it was developing)
+FP <- conf_matrix[2, 1] # False Positives (It was developing, but we said it was developed)
+TP <- conf_matrix[2, 2] # True Positives (We got it right, it is developed)
+
+Accuracy <- (TN + TP) / (TN + FN + FP + TP)
+Specificity <- TN / (TN + FP) # True negative rate
+Sensitivity <- TP / (TP + FN) # True positive rate
+
+cat("Accuracy:", round(Accuracy * 100, 2), "%\n")
+cat("Specificity - Accuracy in Developing Countries", round(Specificity * 100, 2), "%\n")
+cat("Sensitivity - Accuracy in Developed Countries:", round(Sensitivity * 100, 2), "%\n")
