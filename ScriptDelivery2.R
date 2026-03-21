@@ -320,7 +320,7 @@ ggplot(df_preston_full, aes(x = GDP_Total, y = Life_Exp , color = Status, label 
   geom_text_repel(size = 2.5, max.overlaps = 15, show.legend = FALSE) +
   scale_size(range = c(1, 8)) +
   scale_color_manual(values = c("TRUE" = "#00BFC4", "FALSE" = "#F8766D"), 
-                     labels = c("Desarrollado", "En Desarrollo")) +
+                     labels = c("Developing", "Developed")) +
   labs(
     title = "Preston Curve. Does money buy life?",
     subtitle = paste("(Average 2010-2015)"),
@@ -338,8 +338,8 @@ modelo_mortalidad <- lm(AdultMortalityMen ~ UnemploymentRate * Status, data = me
 
 summary(modelo_mortalidad) #NO CORRELATION.
 
-# LOGISTIC REGRESSION
 
+# LOGISTIC REGRESSION
 
 log_data <- merged %>% 
   select(Status, LifeExpectancyMen, LifeExpectancyWomen, GDPCurrentUSD, Schooling, InfantDeaths) %>% 
@@ -358,9 +358,9 @@ logistic_model <- glm(Status ~ LifeExpectancyMen + LifeExpectancyWomen + GDPCurr
                       data = train_log, 
                       family = "binomial")
 
-summary(logistic_model)
+summary(logistic_model) #we see that LifeExpectancy values have a high p-value (not significant, proves what we said about the preston curve - not that strong)
 
-# 4. Hacemos las predicciones con el 20% de test We predict with the remaining 20%
+# We predict with the remaining 20%
 # type = "response" gives us the probability of being developed (0 to 1)
 prob_predictions <- predict(logistic_model, newdata = test_log, type = "response")
 
@@ -369,7 +369,7 @@ prob_predictions <- predict(logistic_model, newdata = test_log, type = "response
 class_predictions <- ifelse(prob_predictions > 0.5, 1, 0)
 actual_status <- ifelse(test_log$Status == TRUE, 1, 0)
 
-# 5. CLASSIFICATION TABLE
+# CLASSIFICATION TABLE
 conf_matrix <- table(Predicted = class_predictions, Actual = actual_status)
 print("Classification Table:")
 print(conf_matrix)
