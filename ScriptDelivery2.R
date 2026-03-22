@@ -109,7 +109,6 @@ summary(mod12)
 plot(mod12, 5)
 plot(mod12, 1)
 plot(mod12, 2)
-
 #Now that we can see that we fixed the heteroscedasticity a lot, we see that the values
 #310, 311, 275 are giving problems in the residual plot and in the qq-plot so we are 
 #going to discard them because they are outliers
@@ -152,8 +151,20 @@ model_after_elimination$terms
 #as we are dealing with health relaated data andwe also get 15 covariates that work well 
 #to predict ThinnessTeens. We also get an adjusted r^2 of 0.6587 which ends up having a 
 #really small difference with the r^2 just 0.0155 of difference
+aicvalues <- model_after_elimination$anova$AIC
+steps <- 1:length(aicvalues)
 
+plot(steps, aicvalues, type = "b", pch = 19, col = "blue", lwd = 2,
+     xlab = "Steps (Backward)", 
+     ylab = "AIC Value",
+     main = "AIC Evolution during Model Selection")
 
+n <- nrow(merged_numeric_noutliers2)
+
+modelo_bic <- step(mod122, direction = "backward", k = log(n))
+
+plot(modelo_bic$anova$AIC, type = "o", col = "red", 
+     main = "BIC Model Selection", xlab = "Step", ylab = "BIC Value")
 #==============================================================================
 #Backward elimination in order to find good predictors for the IncomeComposition
 #==============================================================================
@@ -250,6 +261,7 @@ BIC(income_model, income_model1, income_model2, income_model3, final_model)
 
 #we find the confidence intervals for the "winner" model, the one with the highest r-squared
 confint(model_after_elimination, level = 0.95)
+summary(model_after_elimination)
 shapiro.test(residuals(model_after_elimination)) #therefore we should reject the null hypothesis (allegedly)
 plot(model_after_elimination, 1) #residuals vs fitted
 plot(model_after_elimination, 2) #qqplot
@@ -301,7 +313,6 @@ library(ggplot2)
 library(tidyverse)
 library(ggrepel)
 library(scales)
-
 
 df_preston_full <- merged %>%
   group_by(Country) %>% filter(!(Country %in% c("Canada", "China", "Sweden", "Norway"))) %>%
