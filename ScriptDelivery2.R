@@ -127,26 +127,28 @@ plot(mod12, 2)
 merged_numeric_noutliers2 <- merged_numeric_noutliers[-c(274, 273, 246),]
 
 mod122 <- lm(log(ThinnessTeens) ~ ., data = merged_numeric_noutliers2)
-summary(mod12)
+summary(mod122)
 plot(mod122, 5)
 plot(mod122, 1)
 plot(mod122, 2)
 
-shapiro.test(residuals(mod122))
-
-#Now that the heterosdascity problem is fixed, and also that the distribution
-#has been normalized as we can see a 0.7982 p-value in the shapiro test
-#and the Q-Q plot seems to follow a normal distribution, we are ready to
+#Now that the heterosdascity problem is fixed , we are ready to
 #start with the backward elimination to find good predictors for ThinnesTeens
 
 model_after_elimination <- step(mod122, direction = "backward")
 
 summary(model_after_elimination)
 
+plot(model_after_elimination, 5)
 plot(model_after_elimination, 1)
 plot(model_after_elimination, 2)
 
 model_after_elimination$terms
+
+shapiro.test(residuals(model_after_elimination))
+
+#the distribution has been normalized as we can see a 0.7982 p-value in 
+#the shapiro test and the Q-Q plot seems to follow a normal distribution
 
 #So after the elimination we ended up with a r-squared value of 0.6742 which is large enough and
 #as we are dealing with health relaated data andwe also get 15 covariates that work well 
