@@ -1,0 +1,458 @@
+#We load all the necessary libraries
+library(tidyverse)
+library(tidyr)
+
+#We read both datasets
+life <- read.csv("LifeExpectancyDataset.csv")
+economic <- read.csv("economic_data.csv")
+
+#In this part, as both datasets can possibly have the countries listed in a different way,
+# we look them up manually, so that we can see the ones spelt differently and transform them
+unique(life$Country) 
+unique(economic$country_name)
+
+#We convert to lowercase and remove whitespace to simplify the process
+life <- life %>% mutate(Country = tolower(trimws(Country)))
+economic <- economic %>% mutate(country_name = tolower(trimws(country_name)))
+
+#We create a vector with the different country names to make them equal
+mapa_paises <- c(
+  "bahamas" = "bahamas, the",
+  "bolivia (plurinational state of)" = "bolivia",
+  "côte d'ivoire" = "cote d'ivoire",
+  "congo"= "congo, rep.",
+  "democratic republic of the congo" = "congo, dem.rep.",
+  "democratic people's republic of korea" = "korea, dem. people's rep.",
+  "egypt" = "egypt, arab rep.",
+  "gambia" = "gambia, the",
+  "iran (islamic republic of)" = "iran, islamic rep.",
+  "kyrgyzystan" = "kyrgyz republic",
+  "lao people's democratic republic" = "lao pdr",
+  "micronesia (federated states of)" = "micronesia, fed. sts.",
+  "republic of moldova" = "moldova",
+  "republic of korea" = "korea, rep.",
+  "slovakia" = "slovak republic",
+  "united kingdom of great britain and northern ireland" = "united kingdom",
+  "united states of america" = "united states",
+  "swaziland" = "eswatini",
+  "turkey" = "turkiye",
+  "the former yugoslav republic of macedonia" = "north macedonia",
+  "venezuela (bolivarian republic of)" = "venezuela, rb",
+  "yemen" = "yemen rep."
+)
+#If a country contains either of those names, we make them understand it is the same country,
+# so that the data can be appropriately merged
+life <- life %>% 
+  mutate(Country = ifelse(Country %in% names(mapa_paises),
+                          mapa_paises[Country], Country))
+
+#We merge both datasets by Country name and Year, now that we have assured that the country
+# names cannot suppose any problem.
+merged <- inner_join(life, economic, by=c("Country" = "country_name", "Year" = "year"))
+
+
+#Even though by doing an inner join the data that has been merged is supposedly
+# the one between 2010 and 2015 (as those are the years that are coincidental
+# in both datasets), we filter it just in case there are missing values or any
+# false values that accidentally got in
+filtered <- merged %>% 
+  filter(Year>=2010 & Year<=2015)
+
+#Variable type change in Status column, Character -> Logical
+
+filtered$Status[filtered$Status == "Developing"] = FALSE
+filtered$Status[filtered$Status == "Developed"] = TRUE
+filtered$Status = as.logical(filtered$Status)
+
+#Creation of new variable in Filtered and merged dataset: Above(TRUE)/Below(FALSE) average GDP
+#This variable comes from the difficulty to categorize countries economically
+
+average = mean(filtered$GDP, na.rm = TRUE)
+
+filtered = filtered %>%
+  mutate(above_below_average = ifelse(GDP > average, TRUE, FALSE))
+
+#Here as we don´t want any country with NA values in neither of its variables
+
+filtered_clean <- filtered #We had previously removed all rows with NA but we've seen it's not useful
+# and it gives us more inconvenients as we have far less countries to analyse
+
+sum(is.na(filtered_clean))
+
+filtered_clean
+
+#Elimination of irrelevant variable
+
+filtered_clean$GDP.per.Capita..Current.USD. = NULL
+
+
+#Creation of new variable in Filtered and merged dataset: Above(TRUE)/Below(FALSE) average GDP
+#This variable comes from the difficulty to categorize countries economically
+average_GDP = mean(filtered_clean$GDP..Current.USD., na.rm = TRUE)
+filtered_clean = filtered_clean %>%
+  mutate(above_below_average = ifelse(GDP..Current.USD. > average_GDP, TRUE, FALSE))
+
+# Check dataset structure and variable tipes
+str(filtered_clean)
+sapply(filtered_clean, class)          # Gives the class of each variable
+table(sapply(filtered_clean, class))   # Summarizes how many variables per type
+
+# Histogram for Male Life Expectancy
+ggplot(filtered_clean, aes(x = Life.expectancy..men. )) +
+  geom_histogram(bins = 20, fill = "blue", color = "black") +
+  labs(title = "Distribution of Male Life Expectancy (2010-2015)",
+       x = "Male Life Expectancy (years)",
+       y = "Frequency")
+
+# Histogram for Female Life Expectancy
+ggplot(filtered_clean, aes(x = Life.expectancy.women.)) +
+  geom_histogram(bins = 20, fill = "pink", color = "black") +
+  labs(title = "Distribution of Female Life Expectancy (2010-2015)",
+       x = "Female Life Expectancy (years)",
+       y = "Frequency")
+
+# Boxplot comparing male and female life expectancy
+ggplot(filtered_clean, aes(x = "Male", y = Life.expectancy..men.)) +
+  geom_boxplot(fill = "blue", alpha = 0.6) +
+  geom_boxplot(aes(x = "Female", y = Life.expectancy.women.),
+               fill = "pink", alpha = 0.6) +
+  labs(title = "Comparison of Male and Female Life Expectancy (2010–2015)",
+       x = "Gender",
+       y = "Life Expectancy (years)")
+
+# Scatterplot of Female Life Expectancy and GDP (Preston Curve)
+ggplot(filtered_clean, aes(x = GDP, y = Life.expectancy.women.)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", color = "red", se = FALSE) +
+  labs(title = "Preston Curve Women: Life Expectancy vs GDP",
+       x = "GDP",
+       y = "Average Life Expectancy (years)")
+
+# Scatterplot of Male Life Expectancy and GDP (Preston Curve)
+ggplot(filtered_clean, aes(x = GDP, y = Life.expectancy..men.)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", color = "red", se = FALSE) +
+  labs(title = "Preston Curve Men: Life Expectancy vs GDP",
+       x = "GDP",
+       y = "Average Life Expectancy (years)")
+filtered
+
+
+
+###########################
+numeric_df <- filtered_clean[, sapply(filtered_clean, is.numeric)]
+
+x <- model.matrix(~ Life.expectancy..men. + Life.expectancy.women.,
+                  data = filtered_clean)
+
+y <- filtered_clean$GDP
+
+solve(t(x) %*% x) %*% t(x) %*% y
+
+mod <- lm(y ~ x-1,
+          data = filtered_clean)
+
+mod_s <- summary(mod)
+names(mod_s)
+
+######Deliverable 2 - Zirriborrue
+#en resumen QQn s tipoa eiteik bñ eztek oso utille
+full_model <- lm(GDP ~ ., data = filtered_clean)
+
+summary(full_model)
+#best_model <- step(full_model) 
+
+#summary(best_model) #This is to see ALL of the variables
+
+
+cor_matrix <- cor(numeric_df)
+cor_matrix[cor_matrix == 1] <- NA
+cor_df <- as.data.frame(as.table(cor_matrix))
+
+cor_df <- cor_df[!is.na(cor_df$Freq), ]
+
+cor_df <- cor_df[order(-abs(cor_df$Freq)), ]
+
+head(cor_df, 100)
+ggplot(filtered_clean, aes(x = Alcohol, y = Schooling)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "red", se = FALSE) +
+  labs(title = paste("Cor between schooling and alcohol:", round(cor(filtered_clean$Alcohol, filtered_clean$Schooling), 2))) +
+  theme_minimal() 
+
+
+summary(best_model) #This is to see ALL of the variables
+
+modelzirr <- lm(Life.expectancy..men. ~ 
+                  Schooling + GDP + thinness.5.9.years + Alcohol + 
+                  Current.Account.Balance....GDP., 
+                data = filtered_clean)
+
+summary(modelzirr) 
+plot(modelzirr)
+
+
+#===============================================================================
+
+economic_data_filtered <- economic_data %>%
+  filter(year >= 2010 & year <= 2015) %>%
+  select(-Public.Debt....of.GDP., -GDP.per.Capita..Current.USD.)
+
+country_map <- c(
+  "bahamas" = "bahamas, the",
+  "bolivia (plurinational state of)" = "bolivia",
+  "côte d'ivoire" = "cote d'ivoire",
+  "congo"= "congo, rep.",
+  "democratic republic of the congo" = "congo, dem.rep.",
+  "democratic people's republic of korea" = "korea, dem. people's rep.",
+  "egypt" = "egypt, arab rep.",
+  "gambia" = "gambia, the",
+  "iran (islamic republic of)" = "iran, islamic rep.",
+  "kyrgyzystan" = "kyrgyz republic",
+  "lao people's democratic republic" = "lao pdr",
+  "micronesia (federated states of)" = "micronesia, fed. sts.",
+  "republic of moldova" = "moldova",
+  "republic of korea" = "korea, rep.",
+  "slovakia" = "slovak republic",
+  "united kingdom of great britain and northern ireland" = "united kingdom",
+  "united states of america" = "united states",
+  "swaziland" = "eswatini",
+  "turkey" = "turkiye",
+  "the former yugoslav republic of macedonia" = "north macedonia",
+  "venezuela (bolivarian republic of)" = "venezuela, rb",
+  "yemen" = "yemen rep."
+)
+
+life_expectancy_filtered <- life_expectancy %>% 
+  mutate(Country = ifelse(Country %in% names(country_map),
+                          country_map[Country], Country))%>%
+  select(-GDP)
+
+
+merged <- inner_join(life_expectancy_filtered, economic_data_filtered, by=c("Country" = "country_name", "Year" = "year"))
+
+sum(is.na(merged))
+
+names(merged)
+
+new_names <- c("Country",                         "Year",                            "Status",                         
+               "LifeExpectancyMen",           "LifeExpectancyWomen",          "AdultMortalityMen",          
+               "AdultMortalityWomen",         "InfantDeaths",                   "Alcohol",                        
+               "PercentageExpenditure",          "HepatitisBMen",                "HepatitisBWomen",             
+               "Measles",                         "BMI",                             "UnderFiveDeaths",              
+               "Polio",                           "TotalExpenditure",               "Diphtheria",                     
+               "HIV",                        "Population",                      "ThinnessTeens",           
+               "ThinnessKids",              "IncomeComposition", "Schooling",                      
+               "country_id",                      "InflationCPI",               "GDPCurrentUSD",              
+               "UnemploymentRate",         "InterestRateReal",        
+               "InflationGDPDeflator",     "GDPGrowthAnnual",           "CurrentAccountBalanceGDP",
+               "GovernmentExpenseOfGDP",   "GovernmentRevenueOfGDP",   "Tax.RevenueOfGDP",
+               "GrossNationalIncomeUSD")
+
+merged <- setNames(merged, new_names)
+
+merged$Status[merged$Status == "Developing"] = FALSE
+merged$Status[merged$Status == "Developed"] = TRUE
+merged$Status = as.logical(merged$Status)
+#####
+######Deliverable 2 
+
+
+
+#Backward elimination in order to find good predictors for the thinnes in teens
+
+merged_numeric <- merged[,sapply(merged, is.numeric)]
+
+merged_numeric <- merged_numeric %>%
+  select(-ThinnessKids) %>%
+  drop_na()
+
+mod1 <- lm(ThinnessTeens ~ ., data = merged_numeric)
+summary(mod1)
+plot(mod1)
+
+#As the value of r^2 is so high, we can say that we can find good predictors
+#First of all we are going to eliminate the columns that dont make sense
+#and eliminate the outliers that we can see in the qq plot
+
+merged_numeric <- merged_numeric[-c(190, 147),]
+
+merged_numeric <- merged_numeric %>%
+  select(-Year)
+
+ss12 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
+summary(ss12)
+plot(ss12, 5)
+plot(ss12, 1)
+
+
+#Backward elimination in order to find good predictors for the thinnes in teens
+
+
+#==============================================================================
+#Backward elimination in order to find good predictors for the thinness in teens
+#==============================================================================
+
+
+#First of all we select the numeric values from the merged dataset
+merged_numeric <- merged[,sapply(merged, is.numeric)]
+
+#Here we elimante the thinnesKids column because it doesnt make sense to having it
+#As well as the year column
+merged_numeric <- merged_numeric %>%
+  select(-ThinnessKids, -Year) %>%
+  drop_na()
+
+#We define the model with all the possible covariates
+
+mod1 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
+summary(mod1)
+plot(mod1, 5)
+
+#As the value of r^2 is large, we can say that we can find good predictors,
+#and because of the p-value is so small (2.2e-16), we can say that there is
+#at least one good predictor for the thinnes in teens
+#And as in the cooks distance plot we did before we didnt see any outliers, theres no need to eliminate nothing
+
+mod12 <- lm(ThinnessTeens^2 ~ ., data = merged_numeric)
+summary(mod12)
+plot(mod12, 5)
+
+#This done, we are going to start iterating in the model with the backward elimination method
+
+#This part is just to show the heteroscedascity in the original ThinnessTeens variable, without applying the square.
+#It is not used anywhere else.
+
+provisional_model <- lm(ThinnessTeens ~ ., data = merged_numeric)
+plot(provisional_model, 1) 
+
+#This done, we are going to start iterating in the model with the backward elimination method
+#with the step function which computes the backward elimination method based on the AIC method
+
+model_after_elimination <- step(mod12, direction = "backward")
+
+summary(model_after_elimination)
+
+plot(model_after_elimination, 5)
+
+names(model_after_elimination)
+
+model_after_elimination$terms
+
+#So after the elimination we ended up with a r-squared value of 0.7893 which is large enough and
+#we also get that the covariates that work best as predictors for the ThinnessTeens variable are:
+#InfantDeaths, Alcohol, Measles, UnderFiveDeaths, TotalExpenditure, Pôpulation, ThinnessKids(of course), GDPCurrentUSD, and the GrossNationalIncomeUSD
+
+#==============================================================================
+#Backward elimination in order to find good predictors for the IncomeComposition
+#==============================================================================
+
+incomen_modelue <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
+                        AdultMortalityMen + InfantDeaths + Alcohol + 
+                        BMI + TotalExpenditure + UnemploymentRate + 
+                        Status + ThinnessTeens + Population + 
+                        InflationCPI + Measles + Polio,
+                      data = merged)
+
+summary(incomen_modelue)
+plot(incomen_modelue, 5)
+
+# R-squared is = 0.7242 and Adjusted R-squared is = 0.7184
+# We also didnt find any outliers in the dataset
+# Problem: many variables are not significant (p > 0.05)
+
+# We remove AdultMortalityMen (p = 0.634, not significant)
+incomen_modelue1 <- lm(IncomeComposition ~ GDPCurrentUSD + HIV + 
+                         InfantDeaths + Alcohol + 
+                         BMI + TotalExpenditure + UnemploymentRate + 
+                         Status + ThinnessTeens + Polio,
+                       data = merged)
+
+summary(incomen_modelue1)
+plot(incomen_modelue1, 5)
+
+# R-squared is = 0.6687 and Adjusted R-squared is = 0.6642
+# InfantDeaths still not significant (p = 0.124)
+
+#Remove InfantDeaths (p = 0.124, not significant)
+incomen_modelue2 <- lm(IncomeComposition ~ GDPCurrentUSD + 
+                         Alcohol + 
+                         BMI + TotalExpenditure + UnemploymentRate + 
+                         Status + ThinnessTeens + Polio,
+                       data = merged)
+
+summary(incomen_modelue2)
+plot(incomen_modelue2, 5)
+
+#R-squared is = 0.6189 and Adjusted R-squared is = 0.6148
+# All variables are now significant (p < 0.125) but R-squared went down compared to model 1
+
+#For this we try the log transformations
+# Some variables have skewed distributions
+# Log makes them more normal and improves the model
+merged_transform <- merged %>%
+  mutate(log_GDP = log(GDPCurrentUSD),
+         log_HIV = log(HIV),
+         log_Polio = log(Polio),
+         log_TotalExpenditure = log(TotalExpenditure),
+         log_Alcohol = log(Alcohol),
+         log_BMI = log(BMI),
+         log_UnemploymentRate = log(UnemploymentRate),
+         log_ThinnessTeens = log(ThinnessTeens)
+  )
+
+#We do a model with log transformations
+modelo_log <- lm(IncomeComposition ~ log_GDP + log_HIV + log_Alcohol + 
+                   log_BMI + log_TotalExpenditure + log_UnemploymentRate + 
+                   log_ThinnessTeens + log_Polio,
+                 data = merged_transform)
+
+summary(modelo_log)
+
+# R-squared is = 0.7361 and Adjusted R-squared is = 0.7332 
+#It is the best one until now
+
+# Compare all models
+AIC(incomen_modelue, incomen_modelue1, incomen_modelue2, modelo_log)
+BIC(incomen_modelue, incomen_modelue1, incomen_modelue2, modelo_log)
+# modelo_log also has the HIGHEST Adjusted R-squared = 0.7332
+
+
+#CONFIDENCE INTERVALS
+#we find the confidence intervals for the "winner" model, the one with the highest r-squared
+confint(model_after_elimination, level = 0.95)
+shapiro.test(residuals(model_after_elimination)) #therefore we should reject the null hypothesis (allegedly)
+plot(model_after_elimination, 1) #residuals vs fitted
+plot(model_after_elimination, 2) #qqplot
+plot(model_after_elimination, 5) #residuals vs leverage
+
+#PREDICTION
+set.seed(123) #to make sure that we get the same results after randomising
+prediction_indexes <- sample(1:nrow(merged_numeric), size = 0.8 * nrow(merged_numeric)) #we select a 80/20 distribution
+trainingdt <- merged_numeric[prediction_indexes,] #80% for the training part
+testdt <- merged_numeric[-prediction_indexes,] #20% for the testing part
+
+modeltraining <- lm(ThinnessTeens^2 ~ InfantDeaths + Alcohol + PercentageExpenditure
+                    + BMI + UnderFiveDeaths + TotalExpenditure + HIV + 
+                      IncomeComposition + InflationCPI + UnemploymentRate +
+                      InterestRateReal + InflationGDPDeflator + GDPGrowthAnnual +
+                      CurrentAccountBalanceGDP + GovernmentExpenseOfGDP +
+                      GovernmentRevenueOfGDP  + Tax.RevenueOfGDP, data = trainingdt) 
+#we adjust the model with the mentioned 80%, with the same variables as the ThinnessTeens model we have previously used 
+predictiontest <- predict(modeltraining, testdt) #we predict the other 20%
+
+valoresreales <- testdt$ThinnessTeens^2
+correlacion <- cor(predictiontest, valoresreales, use = "complete.obs") #it gives us a correlation of about 0.92 
+r2test <- correlacion^2 #it gives us a r^2 of approximately 0.85
+
+#Now, to find the confidence and prediction intervals
+newcountry <- testdt[1,] #we select the first country from our test group
+
+confidintr <- predict(modeltraining, newdata = newcountry, interval = "confidence")
+confidintr 
+
+predicintr <- predict(modeltraining, newdata = newcountry, interval = "prediction")
+predicintr
+
+sqrt(predicintr) #this would get us the prediction interval for the regular value of ThinnessTeens
+
