@@ -127,35 +127,32 @@ fviz_ca_row(res.ca, col.row = "contrib",
             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"))
 
 ###### PCA# #######
-# 1. PREPARE DATA
-# Selecting 7 numeric variables + 1 categorical (Status)
+# Selecting 7 numeric variables and a categorical one (Status)
 df_pca_raw <- merged %>%
   select(LifeExpectancyMen, AdultMortalityMen, Schooling, 
          GDPCurrentUSD, Alcohol, BMI, HIV, Status) %>%
   drop_na()
 
-# 2. RUN PCA
-# Column 8 (Status) is set as a supplementary qualitative variable
+# Column 8, in this case Status, is set as a supplementary qualitative variable
 res.pca <- PCA(df_pca_raw, quali.sup = 8, scale.unit = TRUE, graph = FALSE)
 
-# 3. OPTIMAL NUMBER OF COMPONENTS (Requirement B)
-# Results show 3 eigenvalues > 1 (2.13, 1.09, 1.00), so 3 components are optimal
+#We want to see if the components are optimal
 print("--- Eigenvalues ---")
 print(res.pca$eig)
 fviz_eig(res.pca, addlabels = TRUE, main = "Scree Plot")
 
-# 4. VARIABLE CORRELATIONS (Requirement C)
-# Dim 1 represents Social Development (Strong link to Schooling: 0.86)
-# Dim 2 represents Economy and Mortality (Strong link to GDP: 0.64)
 print("--- Variable Correlations ---")
 print(res.pca$var$coord)
+
+# Dim 1 represents Social Development (Strong link to Schooling: 0.86)
+# Dim 2 represents Economy and Mortality (Strong link to GDP: 0.64)
 
 # Correlation Circle visualization
 fviz_pca_var(res.pca, col.var = "contrib", 
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-             repel = TRUE, title = "Variables - PCA")
+             repel = TRUE, title = "Variables - PCA") #Using this, we see the correlation among variables in a visual way
 
-# 5. CATEGORICAL PROJECTION (Requirement D)
+# CATEGORICAL PROJECTION (Requirement D)
 # Projecting 'Status' (Developed vs Developing)
 # Developed countries (TRUE) cluster on the right side (High Dim 1)
 fviz_pca_ind(res.pca,
@@ -166,10 +163,10 @@ fviz_pca_ind(res.pca,
              legend.title = "Status",
              title = "PCA: Countries by Development Status")
 
-# 6. CONTRIBUTIONS AND QUALITY
+# CONTRIBUTIONS AND QUALITY
 # Check which variables contribute most to Dim 1
 print("Variable Contributions to Dim 1:")
-print(res.pca$var$contrib[,1])
+sort(res.pca$var$contrib[,1], decreasing = T)
 
 # Quality of representation (cos2)
 print("Quality of representation (cos2):")
@@ -225,3 +222,6 @@ print("Row Contributions:")
 print(res.ca$row$contrib)
 print("Column Contributions:")
 print(res.ca$col$contrib)
+
+
+write_csv(filtered_clean, "csv_merged2cat.csv")
