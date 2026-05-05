@@ -83,11 +83,9 @@ merged$Status[merged$Status == "Developed"] = TRUE
 merged$Status = as.logical(merged$Status)
 
 
-<<<<<<< HEAD
-################################
-=======
 
->>>>>>> 614e5fe5ee864606549eabd46257c5cd28453f71
+################################
+
 df_multivariate <- merged %>%
   select(LifeExpectancyMen, AdultMortalityMen, Alcohol, Schooling, 
          GDPCurrentUSD, InflationCPI, UnemploymentRate, BMI, HIV) %>%
@@ -128,7 +126,102 @@ fviz_ca_biplot(res.ca, repel = TRUE,
 fviz_ca_row(res.ca, col.row = "contrib", 
             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"))
 
-<<<<<<< HEAD
-=======
+###### PCA# #######
+# 1. PREPARE DATA
+# Selecting 7 numeric variables + 1 categorical (Status)
+df_pca_raw <- merged %>%
+  select(LifeExpectancyMen, AdultMortalityMen, Schooling, 
+         GDPCurrentUSD, Alcohol, BMI, HIV, Status) %>%
+  drop_na()
 
->>>>>>> 614e5fe5ee864606549eabd46257c5cd28453f71
+# 2. RUN PCA
+# Column 8 (Status) is set as a supplementary qualitative variable
+res.pca <- PCA(df_pca_raw, quali.sup = 8, scale.unit = TRUE, graph = FALSE)
+
+# 3. OPTIMAL NUMBER OF COMPONENTS (Requirement B)
+# Results show 3 eigenvalues > 1 (2.13, 1.09, 1.00), so 3 components are optimal
+print("--- Eigenvalues ---")
+print(res.pca$eig)
+fviz_eig(res.pca, addlabels = TRUE, main = "Scree Plot")
+
+# 4. VARIABLE CORRELATIONS (Requirement C)
+# Dim 1 represents Social Development (Strong link to Schooling: 0.86)
+# Dim 2 represents Economy and Mortality (Strong link to GDP: 0.64)
+print("--- Variable Correlations ---")
+print(res.pca$var$coord)
+
+# Correlation Circle visualization
+fviz_pca_var(res.pca, col.var = "contrib", 
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE, title = "Variables - PCA")
+
+# 5. CATEGORICAL PROJECTION (Requirement D)
+# Projecting 'Status' (Developed vs Developing)
+# Developed countries (TRUE) cluster on the right side (High Dim 1)
+fviz_pca_ind(res.pca,
+             geom.ind = "point", 
+             col.ind = df_pca_raw$Status, 
+             palette = c("#FC4E07", "#00AFBB"),
+             addEllipses = TRUE,
+             legend.title = "Status",
+             title = "PCA: Countries by Development Status")
+
+# 6. CONTRIBUTIONS AND QUALITY
+# Check which variables contribute most to Dim 1
+print("Variable Contributions to Dim 1:")
+print(res.pca$var$contrib[,1])
+
+# Quality of representation (cos2)
+print("Quality of representation (cos2):")
+print(res.pca$var$cos2)
+
+##############
+#### CA ######
+
+# 1. PREPARE CATEGORICAL DATA
+# Create levels for Schooling and Mortality (3 categories each)
+merged_ca <- merged %>%
+  mutate(
+    Schooling_Level = cut(Schooling, 
+                          breaks = c(0, 10, 14, 22), 
+                          labels = c("Low_School", "Mid_School", "High_School")),
+    Mortality_Level = cut(AdultMortalityMen, 
+                          breaks = 3, 
+                          labels = c("Low_Mort", "Med_Mort", "High_Mort"))
+  ) %>%
+  drop_na(Schooling_Level, Mortality_Level)
+
+# 2. CONTINGENCY TABLE
+# Observed frequencies between Schooling and Mortality
+contingency_table <- table(merged_ca$Schooling_Level, merged_ca$Mortality_Level)
+print(contingency_table)
+
+# 3. CHI-SQUARE TEST (Independence Test)
+# p-value > 0.05 means variables are independent (no strong link)
+chi2_test <- chisq.test(contingency_table)
+print(chi2_test)
+
+# 4. ROW PROFILES
+# Proportions of mortality for each schooling level
+row_profiles <- round(prop.table(contingency_table, margin = 1), 3)
+print(row_profiles)
+
+# 5. RUN CORRESPONDENCE ANALYSIS (CA)
+res.ca <- CA(contingency_table, graph = FALSE)
+
+# 6. OPTIMAL NUMBER OF COMPONENTS
+# Dim 1 explains 98.9%, so 1 component is enough
+print(res.ca$eig)
+fviz_eig(res.ca, addlabels = TRUE)
+
+# 7. INTERPRETATION AND BIPLOT
+# Visualizing the relationship between categories
+fviz_ca_biplot(res.ca, repel = TRUE, 
+               title = "CA Biplot: Schooling vs Mortality")
+
+# 8. CONTRIBUTIONS
+# 'Low_School' and 'Low_Mort' define the main axis (Dim 1)
+print("Row Contributions:")
+print(res.ca$row$contrib)
+print("Column Contributions:")
+print(res.ca$col$contrib)
