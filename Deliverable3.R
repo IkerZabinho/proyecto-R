@@ -5,56 +5,8 @@ library(FactoMineR)
 library(factoextra)
 library(tidyverse)
 
-
-#We load both of the datasets
-life_expectancy <- read.csv("LifeExpectancyDataset.csv")
-economic_data <- read.csv("economic_data.csv")
-
-
-#We select only the years of data that we are interested in
-economic_data_filtered <- economic_data %>%
-  filter(year >= 2010 & year <= 2015) %>%
-  select(-Public.Debt....of.GDP., -GDP.per.Capita..Current.USD.)
-
-#And we normalize all the country names
-country_map <- c(
-  "bahamas" = "bahamas, the",
-  "bolivia (plurinational state of)" = "bolivia",
-  "côte d'ivoire" = "cote d'ivoire",
-  "congo"= "congo, rep.",
-  "democratic republic of the congo" = "congo, dem.rep.",
-  "democratic people's republic of korea" = "korea, dem. people's rep.",
-  "egypt" = "egypt, arab rep.",
-  "gambia" = "gambia, the",
-  "iran (islamic republic of)" = "iran, islamic rep.",
-  "kyrgyzystan" = "kyrgyz republic",
-  "lao people's democratic republic" = "lao pdr",
-  "micronesia (federated states of)" = "micronesia, fed. sts.",
-  "republic of moldova" = "moldova",
-  "republic of korea" = "korea, rep.",
-  "slovakia" = "slovak republic",
-  "united kingdom of great britain and northern ireland" = "united kingdom",
-  "united states of america" = "united states",
-  "swaziland" = "eswatini",
-  "turkey" = "turkiye",
-  "the former yugoslav republic of macedonia" = "north macedonia",
-  "venezuela (bolivarian republic of)" = "venezuela, rb",
-  "yemen" = "yemen rep."
-)
-
-#We apply the country name map and eliminate the GDP column which was found twice in the dataset
-life_expectancy_filtered <- life_expectancy %>% 
-  mutate(Country = ifelse(Country %in% names(country_map),
-                          country_map[Country], Country))%>%
-  select(-GDP)
-
-
-#We merge both datasets by the name of the country and the year of the data
-merged <- inner_join(life_expectancy_filtered, economic_data_filtered, by=c("Country" = "country_name", "Year" = "year"))
-
-
+merged <- read.csv("csv_merged2cat.csv") #taken from the merged dataset of previous deliverables
 #We check for NAs
-sum(is.na(merged))
 
 #We clean the column names of the dataset
 names(merged)
@@ -65,23 +17,16 @@ new_names <- c("Country",                         "Year",                       
                "PercentageExpenditure",          "HepatitisBMen",                "HepatitisBWomen",             
                "Measles",                         "BMI",                             "UnderFiveDeaths",              
                "Polio",                           "TotalExpenditure",               "Diphtheria",                     
-               "HIV",                        "Population",                      "ThinnessTeens",           
+               "HIV",           "GDP",             "Population",                      "ThinnessTeens",           
                "ThinnessKids",              "IncomeComposition", "Schooling",                      
                "country_id",                      "InflationCPI",               "GDPCurrentUSD",              
                "UnemploymentRate",         "InterestRateReal",        
                "InflationGDPDeflator",     "GDPGrowthAnnual",           "CurrentAccountBalanceGDP",
                "GovernmentExpenseOfGDP",   "GovernmentRevenueOfGDP",   "Tax.RevenueOfGDP",
-               "GrossNationalIncomeUSD")
+               "GrossNationalIncomeUSD", "PublicDebtGDP", "Above/BelowAverage")
 
 #Apply the new names
 merged <- setNames(merged, new_names)
-
-#Converting the status column into a logical one, FALSE meaning the country is developing
-#while TRUE means it is developed
-merged$Status[merged$Status == "Developing"] = FALSE
-merged$Status[merged$Status == "Developed"] = TRUE
-merged$Status = as.logical(merged$Status)
-
 
 
 ################################
@@ -175,7 +120,7 @@ print(res.pca$var$cos2)
 ##############
 #### CA ######
 
-# 1. PREPARE CATEGORICAL DATA
+# PREPARE CATEGORICAL DATA
 # Create levels for Schooling and Mortality (3 categories each)
 merged_ca <- merged %>%
   mutate(
@@ -188,40 +133,37 @@ merged_ca <- merged %>%
   ) %>%
   drop_na(Schooling_Level, Mortality_Level)
 
-# 2. CONTINGENCY TABLE
+# CONTINGENCY TABLE
 # Observed frequencies between Schooling and Mortality
 contingency_table <- table(merged_ca$Schooling_Level, merged_ca$Mortality_Level)
 print(contingency_table)
 
-# 3. CHI-SQUARE TEST (Independence Test)
-# p-value > 0.05 means variables are independent (no strong link)
+# CHI-SQUARE TEST (Independence Test)
 chi2_test <- chisq.test(contingency_table)
-print(chi2_test)
+print(chi2_test) #pvalue equals 0.2425, which indicates us that the link is really weak (independence)
+#the schooling of a country does not help us predict the mortality.
 
-# 4. ROW PROFILES
+# ROW PROFILES
 # Proportions of mortality for each schooling level
 row_profiles <- round(prop.table(contingency_table, margin = 1), 3)
 print(row_profiles)
 
-# 5. RUN CORRESPONDENCE ANALYSIS (CA)
+# RUN CORRESPONDENCE ANALYSIS (CA)
 res.ca <- CA(contingency_table, graph = FALSE)
 
-# 6. OPTIMAL NUMBER OF COMPONENTS
+# OPTIMAL NUMBER OF COMPONENTS
 # Dim 1 explains 98.9%, so 1 component is enough
 print(res.ca$eig)
 fviz_eig(res.ca, addlabels = TRUE)
 
-# 7. INTERPRETATION AND BIPLOT
+# INTERPRETATION AND BIPLOT
 # Visualizing the relationship between categories
 fviz_ca_biplot(res.ca, repel = TRUE, 
                title = "CA Biplot: Schooling vs Mortality")
 
-# 8. CONTRIBUTIONS
+# CONTRIBUTIONS
 # 'Low_School' and 'Low_Mort' define the main axis (Dim 1)
 print("Row Contributions:")
 print(res.ca$row$contrib)
 print("Column Contributions:")
 print(res.ca$col$contrib)
-
-
-write_csv(filtered_clean, "csv_merged2cat.csv")
