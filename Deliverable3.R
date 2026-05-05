@@ -83,7 +83,11 @@ merged$Status[merged$Status == "Developed"] = TRUE
 merged$Status = as.logical(merged$Status)
 
 
+<<<<<<< HEAD
 ################################
+=======
+
+>>>>>>> 614e5fe5ee864606549eabd46257c5cd28453f71
 df_multivariate <- merged %>%
   select(LifeExpectancyMen, AdultMortalityMen, Alcohol, Schooling, 
          GDPCurrentUSD, InflationCPI, UnemploymentRate, BMI, HIV) %>%
@@ -124,3 +128,7 @@ fviz_ca_biplot(res.ca, repel = TRUE,
 fviz_ca_row(res.ca, col.row = "contrib", 
             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"))
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 614e5fe5ee864606549eabd46257c5cd28453f71
