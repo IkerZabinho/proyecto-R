@@ -140,7 +140,7 @@ print(contingency_table)
 
 # CHI-SQUARE TEST (Independence Test)
 chi2_test <- chisq.test(contingency_table)
-print(chi2_test) #pvalue equals 0.2425, which indicates us that the link is really weak (independence)
+print(chi2_test) #pvalue equals 0.2256, which indicates us that the link is really weak (independence)
 #the schooling of a country does not help us predict the mortality.
 
 # ROW PROFILES
@@ -167,3 +167,44 @@ print("Row Contributions:")
 print(res.ca$row$contrib)
 print("Column Contributions:")
 print(res.ca$col$contrib)
+
+
+#####K-MEANS
+
+
+# We use PCA's first two coordinates, as the previous analysis indicated us the plot was located in comp. 2.
+pca_clusters_data <- res.pca$ind$coord[, 1:2] 
+
+#We use the elbow method again, in this case to select the number of clusters
+fviz_nbclust(pca_clusters_data, kmeans, method = "wss") +
+  # geom_vline(xintercept = 3, linetype = 2) +
+  labs(subtitle = "Elbow method") 
+#we select 3 (berez 2ra aldatzie eongohuan sieso? bñ azkenien 2tan banaute ya statusekin zakeau adibidez 
+#ordun ns pixket para variar)
+
+# Método de la Silueta (Silhouette Method)
+fviz_nbclust(pca_clusters_data, kmeans, method = "silhouette") +
+  labs(subtitle = "Silhouette method") #bazpare jartzeiat bñ ni putisima idea honek ze eiteiken ze berez
+#suposatzek altuena hartzie komeniko huala ta ns 10 eo 2 komeni dituken, 10 desdeluego ezetz
+
+
+set.seed(123) #for reproducibility
+km_res <- kmeans(pca_clusters_data, centers = 3, nstart = 25) #as explained earlier 3 centers, and 25 iterations just in case
+
+#to visualize the results
+fviz_cluster(km_res, data = pca_clusters_data,
+             palette = "jco",
+             ellipse = FALSE, #ellipse.type = CONVEX jartzie ziok ta clusterran perimetrue margotu bezela eiteik
+             ggtheme = theme_minimal(),
+             main = "K-means Clustering on PCA Dimensions")
+
+#in which cluster is each country? 
+df_pca_raw$cluster <- as.factor(km_res$cluster)
+
+# Table with the variables used in the pca and the countries that have been clustered
+cluster_interpretation <- df_pca_raw %>%
+  group_by(cluster) %>%
+  summarise(across(where(is.numeric), mean)) %>%
+  arrange(desc(LifeExpectancyMen))
+
+print(cluster_interpretation)
