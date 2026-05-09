@@ -1,4 +1,5 @@
 #We load  the necessary libraries
+library(devtools)
 library(tidyverse)
 library(tidyr)
 library(FactoMineR)
@@ -8,7 +9,11 @@ library(tidyverse)
 merged <- read.csv("csv_merged2cat.csv") #taken from the merged dataset of previous deliverables
 #We check for NAs
 
-#We clean the column names of the dataset
+sum(is.na(merged))
+
+#There are not NA-s, this is because the data had been cleaned in previous deliveries
+
+#We shortten the names of the columns for easier manipulation and understanding
 names(merged)
 
 new_names <- c("Country",                         "Year",                            "Status",                         
@@ -29,7 +34,9 @@ new_names <- c("Country",                         "Year",                       
 merged <- setNames(merged, new_names)
 
 
-################################
+########################################
+#PRINCIPAL COMPONENT ANALYSIS
+########################################
 
 df_multivariate <- merged %>%
   select(LifeExpectancyMen, AdultMortalityMen, Alcohol, Schooling, 
@@ -38,28 +45,59 @@ df_multivariate <- merged %>%
 
 res.pca <- PCA(df_multivariate, scale.unit = TRUE, graph = FALSE)
 
+res.pca$eig
+
+#In this PCA, we can see that the first 2 components are explaining
+#27.83 + 14.38 = 41.21% of the total variance.
+
+#Plot to see it clearer:
+
 fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 50))
+
+#Another plot to get an idea of how the variables may be
+#correlated and which are the ones with more significancy
 
 fviz_pca_var(res.pca, col.var = "contrib", 
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
              repel = TRUE)
 
+#I dont really know what this is
+
 fviz_pca_ind(res.pca, col.ind = "cos2", 
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
              geom = "point", repel = TRUE)
 
+
+########################################
+#COMPONENT ANALYSIS
+########################################
+
+#Prepare the dataset in order to do a CA (Component Analysis)
+
 merged_ca <- merged %>%
+  group_by(Country) %>%
+  summarise(
+    Schooling = mean(Schooling),
+    Mortality = (mean(AdultMortalityMen) + mean(AdultMortalityWomen)) / 2
+  ) %>%
   mutate(
     Schooling_Level = cut(Schooling, 
                           breaks = c(0, 10, 14, 22), 
                           labels = c("Low_School", "Mid_School", "High_School")),
-    Mortality_Level = cut(AdultMortalityMen, 
+    Mortality_Level = cut(Mortality, 
                           breaks = 3, 
                           labels = c("Low_Mort", "Med_Mort", "High_Mort"))
   ) %>%
   drop_na(Schooling_Level, Mortality_Level)
 
+#Compute a contingency table to get a brief view of the data we have got
+
 tabla_contigencia <- table(merged_ca$Schooling_Level, merged_ca$Mortality_Level)
+
+#The insights we get from this contingency table are:
+#The countries with medium schooling have the highest mortality rates
+#The countries with the lowest mortalityt are the ones
+#
 
 print(chisq.test(tabla_contigencia))
 
