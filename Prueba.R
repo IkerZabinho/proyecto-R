@@ -67,7 +67,10 @@ merged$Status[merged$Status == "Developed"] = TRUE
 merged$Status = as.logical(merged$Status)
 #####
 ######Deliverable 2 - Zirriborrue
+<<<<<<< HEAD
+=======
 
+>>>>>>> e97ca0389671b501682128edac93e6fd548cc871
 #backward eliminationen prueba
 df_modelo <- merged %>%
   select(Schooling, Alcohol, BMI, HIV, GDPCurrentUSD,
@@ -110,6 +113,10 @@ plot(modelo4, 5)
 #tiramos con AIC y BIC
 AIC(full_model, modelo2, modelo3, modelo31, modelo4)
 BIC(full_model, modelo2, modelo3, modelo31, modelo4)
+<<<<<<< HEAD
+
+=======
+>>>>>>> e97ca0389671b501682128edac93e6fd548cc871
 
 
 #==============================================================================
@@ -143,8 +150,14 @@ plot(provisional_model, 1)
 #at least one good predictor for the thinnes in teens
 #And as in the cooks distance plot we did before we didnt see any outliers, theres no need to eliminate nothing
 
+<<<<<<< HEAD
+
+######TETASEN PARTIE
+#Backward elimination in order to find good predictors for the thinnes in teens
+=======
 #This done, we are going to start iterating in the model with the backward elimination method
 #with the step function which computes the backward elimination method based on the AIC criteria
+>>>>>>> e97ca0389671b501682128edac93e6fd548cc871
 
 model_after_elimination <- step(mod12, direction = "backward")
 
@@ -241,6 +254,54 @@ plot(model_after_elimination, 1) #residuals vs fitted
 plot(model_after_elimination, 2) #qqplot
 plot(model_after_elimination, 5) #residuals vs leverage
 
+<<<<<<< HEAD
+library(FactoMineR)
+library(factoextra)
+library(tidyverse)
+
+df_multivariate <- merged %>%
+  select(LifeExpectancyMen, AdultMortalityMen, Alcohol, Schooling, 
+         GDPCurrentUSD, InflationCPI, UnemploymentRate, BMI, HIV) %>%
+  drop_na()
+
+# PCA
+res.pca <- PCA(df_multivariate, scale.unit = TRUE, graph = FALSE)
+
+fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 50))
+
+fviz_pca_var(res.pca, col.var = "contrib", 
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE)
+
+fviz_pca_ind(res.pca, col.ind = "cos2", 
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             geom = "point", repel = TRUE)
+
+# CA
+merged_ca <- merged %>%
+  mutate(
+    Schooling_Level = cut(Schooling, 
+                          breaks = c(0, 10, 14, 22), 
+                          labels = c("Low_School", "Mid_School", "High_School")),
+    Mortality_Level = cut(AdultMortalityMen, 
+                          breaks = 3, 
+                          labels = c("Low_Mort", "Med_Mort", "High_Mort"))
+  ) %>%
+  drop_na(Schooling_Level, Mortality_Level)
+
+tabla_contigencia <- table(merged_ca$Schooling_Level, merged_ca$Mortality_Level)
+
+print(chisq.test(tabla_contigencia))
+
+res.ca <- CA(tabla_contigencia, graph = FALSE)
+
+fviz_ca_biplot(res.ca, repel = TRUE, 
+               col.row = "blue", col.col = "red")
+
+fviz_ca_row(res.ca, col.row = "contrib", 
+            gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"))
+
+=======
 #PREDICTION
 set.seed(123) #to make sure that we get the same results after randomising
 prediction_indexes <- sample(1:nrow(merged_numeric), size = 0.8 * nrow(merged_numeric)) #we select a 80/20 distribution
@@ -270,3 +331,4 @@ predicintr <- predict(modeltraining, newdata = newcountry, interval = "predictio
 predicintr
 
 sqrt(predicintr) #this would get us the prediction interval for the regular value of ThinnessTeens
+>>>>>>> e97ca0389671b501682128edac93e6fd548cc871
