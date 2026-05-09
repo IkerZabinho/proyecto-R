@@ -138,13 +138,29 @@ model_after_elimination <- step(mod122, direction = "backward")
 
 summary(model_after_elimination)
 
+model_after_elimination$coefficients
+
 plot(model_after_elimination, 5)
 plot(model_after_elimination, 1)
 plot(model_after_elimination, 2)
 
+merged_numeric_noutliers3 <- merged_numeric_noutliers2[-c(96, 301, 39),]
+
+mod122 <- lm(log(ThinnessTeens) ~ ., data = merged_numeric_noutliers3)
+summary(mod122)
+plot(mod122, 5)
+plot(mod122, 1)
+plot(mod122, 2)
+
 model_after_elimination$terms
 
 shapiro.test(residuals(model_after_elimination))
+
+AIC(model_after_elimination)
+BIC(model_after_elimination)
+
+AIC(final_model)
+BIC(final_model)
 
 #the distribution has been normalized as we can see a 0.7982 p-value in 
 #the shapiro test and the Q-Q plot seems to follow a normal distribution
@@ -256,6 +272,8 @@ shapiro.test(residuals(final_model))
 AIC(income_model, income_model1, income_model2, income_model3, final_model)
 BIC(income_model, income_model1, income_model2, income_model3, final_model)
 # model_log also has the HIGHEST Adjusted R-squared = 0.7332
+
+
 
 #==============================================================================
 #CONFIDENCE INTERVALS
