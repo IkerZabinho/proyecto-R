@@ -1,16 +1,13 @@
-#We load  the necessary libraries
+# We load  the necessary libraries
 library(tidyverse)
 library(tidyr)
 library(FactoMineR)
 library(factoextra)
-library(tidyverse)
 
-merged <- read.csv("csv_merged2cat.csv") #taken from the merged dataset of previous deliverables
-#We check for NAs
+# Taken from the merged dataset of previous deliverables
+merged <- read.csv("csv_merged2cat.csv") 
 
-#We clean the column names of the dataset
-names(merged)
-
+# We clean and standardize the column names for better accessibility
 new_names <- c("Country",                         "Year",                            "Status",                         
                "LifeExpectancyMen",           "LifeExpectancyWomen",          "AdultMortalityMen",          
                "AdultMortalityWomen",         "InfantDeaths",                   "Alcohol",                        
@@ -28,7 +25,9 @@ new_names <- c("Country",                         "Year",                       
 #Apply the new names
 merged <- setNames(merged, new_names)
 
-###### PCA# #######
+###### PCA #######
+
+# We group by Country to create structural profiles
 df_grouped <- merged %>%
   group_by(Country, Status) %>%
   summarise(across(where(is.numeric), function(x) mean(x, na.rm = TRUE)), .groups = "drop")
@@ -39,46 +38,41 @@ df_pca_data <- df_grouped %>%
          GDPCurrentUSD, Alcohol, BMI, HIV, Status) %>%
   drop_na()
 
+# Setting Country as row names for identification in plots
 df_final <- as.data.frame(df_pca_data)
 rownames(df_final) <- df_final$Country
 df_final <- df_final %>% select(-Country)
 
-# Column 8, in this case Status, is set as a supplementary qualitative variable
+# Status (column 8 in df_final) is set as a supplementary qualitative variable
 res.pca <- PCA(df_final, quali.sup = 8, scale.unit = TRUE, graph = FALSE)
 
-# CONTRIBUTIONS AND QUALITY
-
-#We want to see if the components are optimal
-print("--- Autovalores (Eigenvalues) ---")
+# Eigenvalues check. We want to see if the components are optimal ( > 1)
+print("Eigenvalues")
 print(res.pca$eig) 
 
 # Check which variables contribute most to Dim 1
-print("--- Contribuciones a la Dimensión 1 ---")
+print("Contributions to Dimension 1")
 sort(res.pca$var$contrib[,1], decreasing = TRUE) 
 
-# Quality of representation (cos2)
-print("--- Calidad de Representación (cos2) ---")
+# Quality of representation (cos2), how well is each variable represented
+print("Quality of representation (cos2)")
 print(res.pca$var$cos2)
 
+# Elbow Plot visualization
 fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 50))
 
 # Correlation Circle visualization
 fviz_pca_var(res.pca, col.var = "contrib", 
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE)
-#Using this, we see the correlation among variables in a visual way
 
 
-# CATEGORICAL PROJECTION (Requirement D)
 # Projecting 'Status' (Developed vs Developing)
-# Developed countries (blue) cluster on the right side (High Dim 1)
 fviz_pca_ind(res.pca, habillage = 8, addEllipses = TRUE, repel = TRUE, label = "ind")
 res.pca$var$contrib[,1]
 
 
-##############
-#### CA ######
+#### CORRESPONDECE ANALYSIS - CA ######
 
-# PREPARE CATEGORICAL DATA
 # Create levels for Schooling and Mortality (3 categories each)
 merged_ca <- merged %>%
   mutate(
@@ -91,17 +85,18 @@ merged_ca <- merged %>%
   ) %>%
   drop_na(Schooling_Level, Mortality_Level)
 
-# CONTINGENCY TABLE
-# Observed frequencies between Schooling and Mortality
+
+# Contingency Table - Observed frequencies between Schooling and Mortality
 contingency_table <- table(merged_ca$Schooling_Level, merged_ca$Mortality_Level)
 print(contingency_table)
 
-# CHI-SQUARE TEST (Independence Test)
+# Chi-Square Independence Test)
+# p-value > 0.05 indicates independace between categories
 chi2_test <- chisq.test(contingency_table)
 print(chi2_test) #pvalue equals 0.2256, which indicates us that the link is really weak (independence)
 #the schooling of a country does not help us predict the mortality.
 
-# ROW PROFILES
+
 # Proportions of mortality for each schooling level
 row_profiles <- round(prop.table(contingency_table, margin = 1), 3)
 print(row_profiles)
