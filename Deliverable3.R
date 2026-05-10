@@ -1,5 +1,4 @@
 #We load  the necessary libraries
-library(devtools)
 library(tidyverse)
 library(tidyr)
 library(FactoMineR)
@@ -9,11 +8,7 @@ library(tidyverse)
 merged <- read.csv("csv_merged2cat.csv") #taken from the merged dataset of previous deliverables
 #We check for NAs
 
-sum(is.na(merged))
-
-#There are not NA-s, this is because the data had been cleaned in previous deliveries
-
-#We shortten the names of the columns for easier manipulation and understanding
+#We clean the column names of the dataset
 names(merged)
 
 new_names <- c("Country",                         "Year",                            "Status",                         
@@ -34,9 +29,7 @@ new_names <- c("Country",                         "Year",                       
 merged <- setNames(merged, new_names)
 
 
-########################################
-#PRINCIPAL COMPONENT ANALYSIS 1
-########################################
+################################
 
 df_multivariate <- merged %>%
   select(LifeExpectancyMen, AdultMortalityMen, Alcohol, Schooling, 
@@ -45,74 +38,30 @@ df_multivariate <- merged %>%
 
 res.pca <- PCA(df_multivariate, scale.unit = TRUE, graph = FALSE)
 
-res.pca$eig
-
-#In this PCA, we can see that the first 2 components are explaining
-#27.83 + 14.38 = 41.21% of the total variance.
-
-#Plot to see it clearer:
-
 fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 50))
-
-#Another plot to get an idea of how the variables may be
-#correlated and which are the ones with more significancy
 
 fviz_pca_var(res.pca, col.var = "contrib", 
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
              repel = TRUE)
 
-#I dont really know what this is
-
 fviz_pca_ind(res.pca, col.ind = "cos2", 
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
              geom = "point", repel = TRUE)
 
-
-########################################
-#CORRESPONDENCE ANALYSIS
-########################################
-
-#Morivation: Our motivation with this CA is too see how the schooling rates in countries
-#affect the general mortality rates.
-#In the following code, we explain how we did it
-
-#First we prepare the dataset in order to do the CA (Component Analysis)
-
 merged_ca <- merged %>%
-  group_by(Country) %>%
-  summarise(
-    Schooling = mean(Schooling),
-    Mortality = (mean(AdultMortalityMen) + mean(AdultMortalityWomen)) / 2
-  ) %>%
   mutate(
     Schooling_Level = cut(Schooling, 
                           breaks = c(0, 10, 14, 22), 
                           labels = c("Low_School", "Mid_School", "High_School")),
-    Mortality_Level = cut(Mortality, 
+    Mortality_Level = cut(AdultMortalityMen, 
                           breaks = 3, 
                           labels = c("Low_Mort", "Med_Mort", "High_Mort"))
   ) %>%
   drop_na(Schooling_Level, Mortality_Level)
 
-#We categorized the countries mortality and schooling in low, medium and high levels.
-
-#Now we compute a contingency table to get a brief view of the data we have got
-
 tabla_contigencia <- table(merged_ca$Schooling_Level, merged_ca$Mortality_Level)
 
-#The insights we get from this contingency table are:
-#The countries with medium schooling are the most "normal" ones, as it is the group with the most observations
-#There are very few countries with low schooling, and they only have high mortality rates
-#And the countries with high schooling, concnetrate in the medium mortality rate
-
-#In this part, we ran the chi-squared test to see the dependency of our variables
-
-xsq_test <- chisq.test(tabla_contigencia)
-
-xsq_test
-
-#As the p-value is so small (0.029, smaller than 0.05), we reject that the variables are independent,
-#rhis means they are dependent. This may show that for example, low schooling cause high mortality rates
+print(chisq.test(tabla_contigencia))
 
 res.ca <- CA(tabla_contigencia, graph = FALSE)
 
@@ -122,12 +71,7 @@ fviz_ca_biplot(res.ca, repel = TRUE,
 fviz_ca_row(res.ca, col.row = "contrib", 
             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"))
 
-
-
-########################################
-#PRINCIPAL COMPONENT ANALYSIS 2
-########################################
-
+###### PCA# #######
 # Selecting 7 numeric variables and a categorical one (Status)
 df_pca_raw <- merged %>%
   select(LifeExpectancyMen, AdultMortalityMen, Schooling, 
@@ -264,3 +208,105 @@ cluster_interpretation <- df_pca_raw %>%
   arrange(desc(LifeExpectancyMen))
 
 print(cluster_interpretation)
+
+#--------- hemengo hau etzeiat berrezkue deken bñ basikamente herrialdezka eiteko pca filaka einberrien
+
+
+df_grouped <- merged %>%
+  group_by(Country, Status) %>%
+  summarise(across(where(is.numeric), function(x) mean(x, na.rm = TRUE)), .groups = "drop")
+
+df_pca_data <- df_grouped %>% 
+  select(Country, LifeExpectancyMen, AdultMortalityMen, Schooling, 
+         GDPCurrentUSD, Alcohol, BMI, HIV, Status) %>%
+  drop_na()
+
+df_final <- as.data.frame(df_pca_data)
+rownames(df_final) <- df_final$Country
+df_final <- df_final %>% select(-Country)
+
+res.pca <- PCA(df_final, quali.sup = 8, scale.unit = TRUE, graph = FALSE)
+
+fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 50))
+
+fviz_pca_var(res.pca, col.var = "contrib", 
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE)
+
+fviz_pca_ind(res.pca, habillage = 8, addEllipses = TRUE, repel = TRUE, label = "ind")
+
+pca_coords <- res.pca$ind$coord[, 1:2]
+
+fviz_nbclust(pca_coords, kmeans, method = "wss")
+fviz_nbclust(pca_coords, kmeans, method = "silhouette")
+
+set.seed(123)
+km_res <- kmeans(pca_coords, centers = 3, nstart = 25)
+
+fviz_cluster(km_res, data = pca_coords, palette = "jco", 
+             ellipse = FALSE, geom = c("point", "text"), repel = TRUE,
+             ggtheme = theme_minimal())
+
+df_final$cluster <- as.factor(km_res$cluster)
+cluster_summary <- df_final %>%
+  group_by(cluster) %>%
+  summarise(across(where(is.numeric), mean))
+
+merged_ca <- df_grouped %>%
+  mutate(
+    Schooling_Level = cut(Schooling, breaks = c(0, 10, 14, 22), 
+                          labels = c("Low_School", "Mid_School", "High_School")),
+    Mortality_Level = cut(AdultMortalityMen, breaks = 3, 
+                          labels = c("Low_Mort", "Med_Mort", "High_Mort"))
+  ) %>%
+  drop_na(Schooling_Level, Mortality_Level)
+
+contingency_table <- table(merged_ca$Schooling_Level, merged_ca$Mortality_Level)
+chisq.test(contingency_table)
+
+res.ca <- CA(contingency_table, graph = FALSE)
+
+fviz_ca_biplot(res.ca, repel = TRUE, title = "CA: Schooling vs Mortality")
+
+#dendrogram
+
+pca_data <- res.pca$ind$coord #we create the distance matrix
+distance_matrix <- dist(pca_data, method = "euclidean")
+
+
+# Then, we apply the hclust function choosing the method (complete/single/...)
+hc <-  hclust(distance_matrix, method = "complete")
+hc
+# We can plot the dendrogram
+plot(hc)
+
+# dendrogram totxuo
+fviz_dend(hc, 
+          k = 3,                 # El número de grupos que quieres colorear
+          cex = 0.52,             # Tamaño de la fuente para los países
+          lwd = 0.1,             # Grosor de las líneas (finito como pediste)
+          k_colors = c("#2E9FDF", "#00AFBB", "#E7B800"), # Colores para cada cluster
+          color_labels_by_k = TRUE, # Colorea también los nombres de los países
+          rect = F,           # Añade el recuadro alrededor de cada grupo
+          rect_fill = F,      # Rellena el fondo del recuadro (sutil)
+          rect_border = "gray",  # Color del borde del recuadro
+          main = "Dendrograma Jerárquico: Agrupación por Perfil de Salud",
+          xlab = "Países",
+          ylab = "Altura (Distancia)",
+          ggtheme = theme_minimal() + theme(legend.position = "none"))
+
+
+# Cortamos el árbol en 3 grupos
+grupos <- cutree(hc, k = 3)
+
+# Añadimos los grupos al dataframe original para ver las medias
+df_final$cluster_jerarquico <- as.factor(grupos)
+
+# Interpretación: ¿Qué caracteriza a cada grupo?
+resumen_clusters <- df_final %>%
+  group_by(cluster_jerarquico) %>%
+  summarise(across(where(is.numeric), mean))
+
+print(resumen_clusters)
+
+
+
