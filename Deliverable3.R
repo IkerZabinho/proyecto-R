@@ -35,7 +35,7 @@ merged <- setNames(merged, new_names)
 
 
 ########################################
-#PRINCIPAL COMPONENT ANALYSIS
+#PRINCIPAL COMPONENT ANALYSIS 1
 ########################################
 
 df_multivariate <- merged %>%
@@ -69,10 +69,14 @@ fviz_pca_ind(res.pca, col.ind = "cos2",
 
 
 ########################################
-#COMPONENT ANALYSIS
+#CORRESPONDENCE ANALYSIS
 ########################################
 
-#Prepare the dataset in order to do a CA (Component Analysis)
+#Morivation: Our motivation with this CA is too see how the schooling rates in countries
+#affect the general mortality rates.
+#In the following code, we explain how we did it
+
+#First we prepare the dataset in order to do the CA (Component Analysis)
 
 merged_ca <- merged %>%
   group_by(Country) %>%
@@ -90,16 +94,25 @@ merged_ca <- merged %>%
   ) %>%
   drop_na(Schooling_Level, Mortality_Level)
 
-#Compute a contingency table to get a brief view of the data we have got
+#We categorized the countries mortality and schooling in low, medium and high levels.
+
+#Now we compute a contingency table to get a brief view of the data we have got
 
 tabla_contigencia <- table(merged_ca$Schooling_Level, merged_ca$Mortality_Level)
 
 #The insights we get from this contingency table are:
-#The countries with medium schooling have the highest mortality rates
-#The countries with the lowest mortalityt are the ones
-#
+#The countries with medium schooling are the most "normal" ones, as it is the group with the most observations
+#There are very few countries with low schooling, and they only have high mortality rates
+#And the countries with high schooling, concnetrate in the medium mortality rate
 
-print(chisq.test(tabla_contigencia))
+#In this part, we ran the chi-squared test to see the dependency of our variables
+
+xsq_test <- chisq.test(tabla_contigencia)
+
+xsq_test
+
+#As the p-value is so small (0.029, smaller than 0.05), we reject that the variables are independent,
+#rhis means they are dependent. This may show that for example, low schooling cause high mortality rates
 
 res.ca <- CA(tabla_contigencia, graph = FALSE)
 
@@ -109,7 +122,12 @@ fviz_ca_biplot(res.ca, repel = TRUE,
 fviz_ca_row(res.ca, col.row = "contrib", 
             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"))
 
-###### PCA# #######
+
+
+########################################
+#PRINCIPAL COMPONENT ANALYSIS 2
+########################################
+
 # Selecting 7 numeric variables and a categorical one (Status)
 df_pca_raw <- merged %>%
   select(LifeExpectancyMen, AdultMortalityMen, Schooling, 
