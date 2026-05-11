@@ -156,16 +156,18 @@ fviz_cluster(km_res, data = pca_clusters_data,
              ggtheme = theme_minimal(),
              main = "K-means Clustering on PCA Dimensions")
 
-#in which cluster is each country? 
-df_pca_raw$cluster <- as.factor(km_res$cluster)
-
-# Table with the variables used in the pca and the countries that have been clustered
-cluster_interpretation <- df_pca_raw %>%
-  group_by(cluster) %>%
-  summarise(across(where(is.numeric), mean)) %>%
-  arrange(desc(LifeExpectancyMen))
-
-print(cluster_interpretation)
+# df_pca_raw <- pca_clusters_data
+# 
+# #in which cluster is each country? 
+# df_pca_raw$cluster <- as.factor(km_res$cluster)
+# 
+# # Table with the variables used in the pca and the countries that have been clustered
+# cluster_interpretation <- df_pca_raw %>%
+#   group_by(cluster) %>%
+#   summarise(across(where(is.numeric), mean)) %>%
+#   arrange(desc(LifeExpectancyMen))
+# 
+# print(cluster_interpretation)
 
 
 
@@ -188,15 +190,6 @@ cluster_summary <- df_final %>%
   group_by(cluster) %>%
   summarise(across(where(is.numeric), mean))
 
-merged_ca <- df_grouped %>%
-  mutate(
-    Schooling_Level = cut(Schooling, breaks = c(0, 10, 14, 22), 
-                          labels = c("Low_School", "Mid_School", "High_School")),
-    Mortality_Level = cut(AdultMortalityMen, breaks = 3, 
-                          labels = c("Low_Mort", "Med_Mort", "High_Mort"))
-  ) %>%
-  drop_na(Schooling_Level, Mortality_Level)
-
 contingency_table <- table(merged_ca$Schooling_Level, merged_ca$Mortality_Level)
 chisq.test(contingency_table)
 
@@ -217,10 +210,10 @@ hc
 plot(hc)
 
 # dendrogram totxuo
-fviz_dend(hc, 
+fviz_dend(hc,
           k = 3,                 # El número de grupos que quieres colorear
-          cex = 0.52,             # Tamaño de la fuente para los países
-          lwd = 0.1,             # Grosor de las líneas (finito como pediste)
+          cex = 0.4,             # Tamaño de la fuente para los países
+          lwd = 0.01,             # Grosor de las líneas (finito como pediste)
           k_colors = c("#2E9FDF", "#00AFBB", "#E7B800"), # Colores para cada cluster
           color_labels_by_k = TRUE, # Colorea también los nombres de los países
           rect = F,           # Añade el recuadro alrededor de cada grupo
