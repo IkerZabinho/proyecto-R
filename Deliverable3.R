@@ -75,11 +75,16 @@ res.pca$var$contrib[,1]
 
 # Create levels for Schooling and Mortality (3 categories each)
 merged_ca <- merged %>%
+  group_by(Country) %>%
+  summarise(
+    Schooling = mean(Schooling),
+    Mortality = (mean(AdultMortalityMen) + mean(AdultMortalityWomen))/2
+  )%>%
   mutate(
     Schooling_Level = cut(Schooling, 
                           breaks = c(0, 10, 14, 22), 
                           labels = c("Low_School", "Mid_School", "High_School")),
-    Mortality_Level = cut(AdultMortalityMen, 
+    Mortality_Level = cut(Mortality, 
                           breaks = 3, 
                           labels = c("Low_Mort", "Med_Mort", "High_Mort"))
   ) %>%
