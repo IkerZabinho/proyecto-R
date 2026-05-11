@@ -87,6 +87,11 @@ filtered_clean
 
 filtered_clean$GDP.per.Capita..Current.USD. = NULL
 
+#Make a dataset without NA-s although there are less observations it may be useful later
+
+filtered_clean2 <- filtered_clean %>%
+  drop_na()
+
 
 #Creation of new variable in Filtered and merged dataset: Above(TRUE)/Below(FALSE) average GDP
 #This variable comes from the difficulty to categorize countries economically
@@ -416,9 +421,7 @@ exp(predicintr)
 ################################################################################
 
 # Taken from the merged dataset of previous deliverables
-merged <- read.csv("csv_merged2cat.csv") 
 
-# We clean and standardize the column names for better accessibility
 new_names <- c("Country",                         "Year",                            "Status",                         
                "LifeExpectancyMen",           "LifeExpectancyWomen",          "AdultMortalityMen",          
                "AdultMortalityWomen",         "InfantDeaths",                   "Alcohol",                        
@@ -433,7 +436,8 @@ new_names <- c("Country",                         "Year",                       
                "GovernmentExpenseOfGDP",   "GovernmentRevenueOfGDP",   "Tax.RevenueOfGDP",
                "GrossNationalIncomeUSD", "PublicDebtGDP", "Above/BelowAverage")
 
-#Apply the new names
+merged <- filtered_clean2
+
 merged <- setNames(merged, new_names)
 
 ###### PCA #######

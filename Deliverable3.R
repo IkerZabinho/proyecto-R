@@ -237,6 +237,3 @@ resumen_clusters <- df_final %>%
   summarise(across(where(is.numeric), mean))
 
 print(resumen_clusters)
-
-
-
