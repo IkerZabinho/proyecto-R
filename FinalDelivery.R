@@ -601,7 +601,7 @@ fviz_nbclust(pca_coords, kmeans, method = "wss")
 fviz_nbclust(pca_coords, kmeans, method = "silhouette")
 
 set.seed(123)
-km_res <- kmeans(pca_coords, centers = 3, nstart = 25)
+km_res <- kmeans(pca_coords, centers = 4, nstart = 25)
 
 fviz_cluster(km_res, data = pca_coords, palette = "jco", 
              ellipse = FALSE, geom = c("point", "text"), repel = TRUE,
@@ -633,14 +633,9 @@ plot(hc)
 
 # dendrogram totxuo
 fviz_dend(hc,
-          k = 3,                 # El número de grupos que quieres colorear
-          cex = 0.4,             # Tamaño de la fuente para los países
-          lwd = 0.01,             # Grosor de las líneas (finito como pediste)
-          k_colors = c("#2E9FDF", "#00AFBB", "#E7B800"), # Colores para cada cluster
-          color_labels_by_k = TRUE, # Colorea también los nombres de los países
-          rect = F,           # Añade el recuadro alrededor de cada grupo
-          rect_fill = F,      # Rellena el fondo del recuadro (sutil)
-          rect_border = "gray",  # Color del borde del recuadro
+          k = 3, cex = 0.4, lwd = 0.01,
+          k_colors = c("#2E9FDF", "#00AFBB", "#E7B800"), color_labels_by_k = TRUE,
+          rect = F, rect_fill = F, rect_border = "gray",  
           main = "Dendrograma Jerárquico: Agrupación por Perfil de Salud",
           xlab = "Países",
           ylab = "Altura (Distancia)",
