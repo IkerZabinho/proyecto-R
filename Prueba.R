@@ -67,10 +67,7 @@ merged$Status[merged$Status == "Developed"] = TRUE
 merged$Status = as.logical(merged$Status)
 #####
 ######Deliverable 2 - Zirriborrue
-<<<<<<< HEAD
-=======
 
->>>>>>> e97ca0389671b501682128edac93e6fd548cc871
 #backward eliminationen prueba
 df_modelo <- merged %>%
   select(Schooling, Alcohol, BMI, HIV, GDPCurrentUSD,
@@ -113,10 +110,6 @@ plot(modelo4, 5)
 #tiramos con AIC y BIC
 AIC(full_model, modelo2, modelo3, modelo31, modelo4)
 BIC(full_model, modelo2, modelo3, modelo31, modelo4)
-<<<<<<< HEAD
-
-=======
->>>>>>> e97ca0389671b501682128edac93e6fd548cc871
 
 
 #==============================================================================
@@ -150,14 +143,9 @@ plot(provisional_model, 1)
 #at least one good predictor for the thinnes in teens
 #And as in the cooks distance plot we did before we didnt see any outliers, theres no need to eliminate nothing
 
-<<<<<<< HEAD
-
-######TETASEN PARTIE
 #Backward elimination in order to find good predictors for the thinnes in teens
-=======
 #This done, we are going to start iterating in the model with the backward elimination method
 #with the step function which computes the backward elimination method based on the AIC criteria
->>>>>>> e97ca0389671b501682128edac93e6fd548cc871
 
 model_after_elimination <- step(mod12, direction = "backward")
 
@@ -254,7 +242,6 @@ plot(model_after_elimination, 1) #residuals vs fitted
 plot(model_after_elimination, 2) #qqplot
 plot(model_after_elimination, 5) #residuals vs leverage
 
-<<<<<<< HEAD
 library(FactoMineR)
 library(factoextra)
 library(tidyverse)
@@ -301,7 +288,6 @@ fviz_ca_biplot(res.ca, repel = TRUE,
 fviz_ca_row(res.ca, col.row = "contrib", 
             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"))
 
-=======
 #PREDICTION
 set.seed(123) #to make sure that we get the same results after randomising
 prediction_indexes <- sample(1:nrow(merged_numeric), size = 0.8 * nrow(merged_numeric)) #we select a 80/20 distribution
@@ -331,4 +317,3 @@ predicintr <- predict(modeltraining, newdata = newcountry, interval = "predictio
 predicintr
 
 sqrt(predicintr) #this would get us the prediction interval for the regular value of ThinnessTeens
->>>>>>> e97ca0389671b501682128edac93e6fd548cc871

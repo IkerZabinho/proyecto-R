@@ -440,8 +440,9 @@ merged <- filtered_clean2
 
 merged <- setNames(merged, new_names)
 
-###### PCA #######
-
+#==============================================================================
+#PCA
+#==============================================================================
 # We group by Country to create structural profiles
 df_grouped <- merged %>%
   group_by(Country, Status) %>%
@@ -486,7 +487,9 @@ fviz_pca_ind(res.pca, habillage = 8, addEllipses = TRUE, repel = TRUE, label = "
 res.pca$var$contrib[,1]
 
 
-#### CORRESPONDECE ANALYSIS - CA ######
+#==============================================================================
+#CORRESPONDENCE ANALISYS
+#==============================================================================
 
 # Create levels for Schooling and Mortality (3 categories each)
 merged_ca <- merged %>%
@@ -542,7 +545,9 @@ print("Column Contributions:")
 print(res.ca$col$contrib)
 
 
-#####K-MEANS
+#==============================================================================
+#K-MEANS
+#==============================================================================
 
 
 # We use PCA's first two coordinates, as the previous analysis indicated us the plot was located in comp. 2.
@@ -573,7 +578,7 @@ fviz_cluster(km_res, data = pca_clusters_data,
 
 # df_pca_raw <- pca_clusters_data
 # 
-# #in which cluster is each country? 
+# #in which cluster is each country?
 # df_pca_raw$cluster <- as.factor(km_res$cluster)
 # 
 # # Table with the variables used in the pca and the countries that have been clustered
@@ -586,7 +591,9 @@ fviz_cluster(km_res, data = pca_clusters_data,
 
 
 
-##CLUSTERING
+#==============================================================================
+#CLUSTERING
+#==============================================================================
 
 pca_coords <- res.pca$ind$coord[, 1:2]
 
@@ -594,7 +601,7 @@ fviz_nbclust(pca_coords, kmeans, method = "wss")
 fviz_nbclust(pca_coords, kmeans, method = "silhouette")
 
 set.seed(123)
-km_res <- kmeans(pca_coords, centers = 3, nstart = 25)
+km_res <- kmeans(pca_coords, centers = 4, nstart = 25)
 
 fviz_cluster(km_res, data = pca_coords, palette = "jco", 
              ellipse = FALSE, geom = c("point", "text"), repel = TRUE,
@@ -626,14 +633,9 @@ plot(hc)
 
 # dendrogram totxuo
 fviz_dend(hc,
-          k = 3,                 # El número de grupos que quieres colorear
-          cex = 0.4,             # Tamaño de la fuente para los países
-          lwd = 0.01,             # Grosor de las líneas (finito como pediste)
-          k_colors = c("#2E9FDF", "#00AFBB", "#E7B800"), # Colores para cada cluster
-          color_labels_by_k = TRUE, # Colorea también los nombres de los países
-          rect = F,           # Añade el recuadro alrededor de cada grupo
-          rect_fill = F,      # Rellena el fondo del recuadro (sutil)
-          rect_border = "gray",  # Color del borde del recuadro
+          k = 3, cex = 0.4, lwd = 0.01,
+          k_colors = c("#2E9FDF", "#00AFBB", "#E7B800"), color_labels_by_k = TRUE,
+          rect = F, rect_fill = F, rect_border = "gray",  
           main = "Dendrograma Jerárquico: Agrupación por Perfil de Salud",
           xlab = "Países",
           ylab = "Altura (Distancia)",
