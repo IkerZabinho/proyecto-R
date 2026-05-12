@@ -440,8 +440,9 @@ merged <- filtered_clean2
 
 merged <- setNames(merged, new_names)
 
-###### PCA #######
-
+#==============================================================================
+#PCA
+#==============================================================================
 # We group by Country to create structural profiles
 df_grouped <- merged %>%
   group_by(Country, Status) %>%
@@ -486,7 +487,9 @@ fviz_pca_ind(res.pca, habillage = 8, addEllipses = TRUE, repel = TRUE, label = "
 res.pca$var$contrib[,1]
 
 
-#### CORRESPONDECE ANALYSIS - CA ######
+#==============================================================================
+#CORRESPONDENCE ANALISYS
+#==============================================================================
 
 # Create levels for Schooling and Mortality (3 categories each)
 merged_ca <- merged %>%
@@ -542,7 +545,9 @@ print("Column Contributions:")
 print(res.ca$col$contrib)
 
 
-#####K-MEANS
+#==============================================================================
+#K-MEANS
+#==============================================================================
 
 
 # We use PCA's first two coordinates, as the previous analysis indicated us the plot was located in comp. 2.
@@ -573,7 +578,7 @@ fviz_cluster(km_res, data = pca_clusters_data,
 
 # df_pca_raw <- pca_clusters_data
 # 
-# #in which cluster is each country? 
+# #in which cluster is each country?
 # df_pca_raw$cluster <- as.factor(km_res$cluster)
 # 
 # # Table with the variables used in the pca and the countries that have been clustered
@@ -586,7 +591,9 @@ fviz_cluster(km_res, data = pca_clusters_data,
 
 
 
-##CLUSTERING
+#==============================================================================
+#CLUSTERING
+#==============================================================================
 
 pca_coords <- res.pca$ind$coord[, 1:2]
 
