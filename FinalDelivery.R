@@ -633,12 +633,15 @@ plot(hc)
 
 # dendrogram totxuo
 fviz_dend(hc,
-          k = 3, cex = 0.4, lwd = 0.01,
-          k_colors = c("#2E9FDF", "#00AFBB", "#E7B800"), color_labels_by_k = TRUE,
-          rect = F, rect_fill = F, rect_border = "gray",  
-          main = "Dendrograma Jerárquico: Agrupación por Perfil de Salud",
-          xlab = "Países",
-          ylab = "Altura (Distancia)",
+          k = 3,               
+          cex = 0.7,           
+          lwd = 0.5,           
+          k_colors = c("#2E9FDF", "#00AFBB", "#E7B800"), 
+          color_labels_by_k = TRUE, 
+          rect = FALSE,          
+          main = "Hierarchical Clustering: Country Health Profiles",
+          xlab = "Countries",
+          ylab = "Height (Euclidean Distance)",
           ggtheme = theme_minimal() + theme(legend.position = "none"))
 
 
