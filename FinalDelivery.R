@@ -555,7 +555,7 @@ pca_clusters_data <- res.pca$ind$coord[, 1:2]
 
 #We use the elbow method again, in this case to select the number of clusters
 fviz_nbclust(pca_clusters_data, kmeans, method = "wss") +
-  # geom_vline(xintercept = 3, linetype = 2) +
+  geom_vline(xintercept = 4, linetype = 2) +
   labs(subtitle = "Elbow method") 
 #we select 3 (berez 2ra aldatzie eongohuan sieso? bñ azkenien 2tan banaute ya statusekin zakeau adibidez 
 #ordun ns pixket para variar)
@@ -633,12 +633,12 @@ plot(hc)
 
 # dendrogram totxuo
 fviz_dend(hc,
-          k = 3, cex = 0.4, lwd = 0.01,
+          k = 3, cex = 0.46,
           k_colors = c("#2E9FDF", "#00AFBB", "#E7B800"), color_labels_by_k = TRUE,
           rect = F, rect_fill = F, rect_border = "gray",  
-          main = "Dendrograma Jerárquico: Agrupación por Perfil de Salud",
-          xlab = "Países",
-          ylab = "Altura (Distancia)",
+          main = "Hierarchical Dendrogram",
+          xlab = "Countries",
+          ylab = "Distance",
           ggtheme = theme_minimal() + theme(legend.position = "none"))
 
 
