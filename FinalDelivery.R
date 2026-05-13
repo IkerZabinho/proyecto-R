@@ -7,6 +7,8 @@ library(corrplot)
 library(scales)
 library(ggrepel)
 
+set.seed(123) #for reproducibility
+
 #We read both datasets
 life <- read.csv("LifeExpectancyDataset.csv")
 economic <- read.csv("economic_data.csv")
@@ -400,8 +402,6 @@ plot(model_after_elimination, 5) #residuals vs leverage
 #PREDICTION
 #==============================================================================
 
-set.seed(123) #to make sure that we get the same results after randomising
-
 prediction_indexes <- sample(1:nrow(merged_numeric_noutliers2), size = 0.8 * nrow(merged_numeric_noutliers2)) #we select a 80/20 distribution
 
 trainingdt <- merged_numeric_noutliers2[prediction_indexes,] #80% for the training part
@@ -536,10 +536,11 @@ print(contingency_table)
 # Chi-Square Independence Test)
 # p-value > 0.05 indicates independence between categories
 chi2_test <- chisq.test(contingency_table)
-print(chi2_test) #pvalue equals 0.02951, which indicates us that, being lower than 
-# 0.05 there is dependency between schooling and mortality level.
+print(chi2_test) #p-value equals 0.02951, this is lower than 0.05 so these tells 
+#us that there is dependency between schooling and mortality level.
 
 #the schooling of a country does not help us predict the mortality.
+
 ####independence table: observed - expected
 tab_independencia <- chi2_test$expected
 
@@ -640,12 +641,18 @@ fviz_cluster(km_res, data = pca_clusters_data,
 #CLUSTERING
 #==============================================================================
 
+#Take the coordinates of the oints after the pca
 pca_coords <- res.pca$ind$coord[, 1:2]
 
+#plot the silhouette and the wss plot to see what number of clusters we need to define
+#for each type of clustering methods, partitioning method will use the output of the wss while
+#for the hierarchical method we will use the silhouette plot
 fviz_nbclust(pca_coords, kmeans, method = "wss")
 fviz_nbclust(pca_coords, kmeans, method = "silhouette")
 
-set.seed(123)
+#partitioning(k-means) 
+#
+
 km_res <- kmeans(pca_coords, centers = 4, nstart = 25)
 
 fviz_cluster(km_res, data = pca_coords, palette = "jco", 
