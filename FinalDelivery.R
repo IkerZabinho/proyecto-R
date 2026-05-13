@@ -516,19 +516,46 @@ print(contingency_table)
 # Chi-Square Independence Test)
 # p-value > 0.05 indicates independace between categories
 chi2_test <- chisq.test(contingency_table)
-print(chi2_test) #pvalue equals 0.2256, which indicates us that the link is really weak (independence)
-#the schooling of a country does not help us predict the mortality.
+print(chi2_test) #pvalue equals 0.02951, which indicates us that, being lower than 
+# 0.05 there is dependency between schooling and mortality level.
 
+#the schooling of a country does not help us predict the mortality.
+####independence table: observed - expected
+tab_independencia <- chi2_test$expected
+
+print("Table under independence (expected values):")
+print(round(tab_independencia, 2))
+
+# we see the difference
+# if positive, attracted, else, repelled.
+difer <- contingency_table - tab_independencia
+print(round(difer, 2))
+
+# Corrplot for the attraction/repulsion
+library(corrplot)
+corrplot(chi2_test$residuals, is.cor = FALSE, 
+         title = "Residuals (Blue: Attraction / Red: Repulsion)",
+         mar=c(0,0,1,0))
+
+
+
+
+
+#####
 
 # Proportions of mortality for each schooling level
 row_profiles <- round(prop.table(contingency_table, margin = 1), 3)
 print(row_profiles)
 
+# Proportions of Schooling for each mortality level
+col_profiles <- round(prop.table(contingency_table, margin = 2), 3)
+print(col_profiles)
+
 # RUN CORRESPONDENCE ANALYSIS (CA)
 res.ca <- CA(contingency_table, graph = FALSE)
 
 # OPTIMAL NUMBER OF COMPONENTS
-# Dim 1 explains 98.9%, so 1 component is enough
+#hemen esplikaziyue sartu
 print(res.ca$eig)
 fviz_eig(res.ca, addlabels = TRUE)
 
@@ -543,6 +570,7 @@ print("Row Contributions:")
 print(res.ca$row$contrib)
 print("Column Contributions:")
 print(res.ca$col$contrib)
+
 
 
 #==============================================================================
