@@ -3,6 +3,8 @@ library(tidyverse)
 library(tidyr)
 library(FactoMineR)
 library(factoextra)
+library(ggrepel)
+library(scales)
 
 #We read both datasets
 life <- read.csv("LifeExpectancyDataset.csv")
@@ -127,23 +129,30 @@ ggplot(filtered_clean, aes(x = "Male", y = Life.expectancy..men.)) +
        x = "Gender",
        y = "Life Expectancy (years)")
 
-# Scatterplot of Female Life Expectancy and GDP (Preston Curve)
-ggplot(filtered_clean, aes(x = GDP, y = Life.expectancy.women.)) +
-  geom_point(alpha = 0.6) +
-  geom_smooth(method = "lm", color = "red", se = FALSE) +
-  labs(title = "Preston Curve Women: Life Expectancy vs GDP",
-       x = "GDP",
-       y = "Average Life Expectancy (years)")
+preston_plot <- filtered_clean %>%
+  group_by(Country) %>%
+  summarise(
+    developed = Status,
+    Population = mean(Population),
+    gdp = mean(GDP..Current.USD.),
+    life_expectancy = (mean(Life.expectancy..men.) + mean(Life.expectancy.women.))/2,
+    Schooling <- mean(Schooling)
+  )
 
-# Scatterplot of Male Life Expectancy and GDP (Preston Curve)
-ggplot(filtered_clean, aes(x = GDP, y = Life.expectancy..men.)) +
-  geom_point(alpha = 0.6) +
-  geom_smooth(method = "lm", color = "red", se = FALSE) +
-  labs(title = "Preston Curve Men: Life Expectancy vs GDP",
-       x = "GDP",
-       y = "Average Life Expectancy (years)")
-filtered
 
+ggplot(preston_plot, aes(x = gdp, y = life_expectancy, size = Population, color = developed)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(aes(group = 1), 
+              method = "lm", 
+              color = "black", 
+              linetype = "dashed", 
+              se = FALSE) +
+  scale_x_log10(labels = scales::unit_format(unit = "B", scale = 1e-9)) +
+  theme_minimal() +
+  labs(x = "Total GDP - USD (Billions)",
+       y = "Life Expectancy (Years)") +
+  coord_cartesian(ylim = c(55, 85)) +
+  theme(legend.position = "none")
 
 
 ###########################
@@ -516,46 +525,19 @@ print(contingency_table)
 # Chi-Square Independence Test)
 # p-value > 0.05 indicates independace between categories
 chi2_test <- chisq.test(contingency_table)
-print(chi2_test) #pvalue equals 0.02951, which indicates us that, being lower than 
-# 0.05 there is dependency between schooling and mortality level.
-
+print(chi2_test) #pvalue equals 0.2256, which indicates us that the link is really weak (independence)
 #the schooling of a country does not help us predict the mortality.
-####independence table: observed - expected
-tab_independencia <- chi2_test$expected
 
-print("Table under independence (expected values):")
-print(round(tab_independencia, 2))
-
-# we see the difference
-# if positive, attracted, else, repelled.
-difer <- contingency_table - tab_independencia
-print(round(difer, 2))
-
-# Corrplot for the attraction/repulsion
-library(corrplot)
-corrplot(chi2_test$residuals, is.cor = FALSE, 
-         title = "Residuals (Blue: Attraction / Red: Repulsion)",
-         mar=c(0,0,1,0))
-
-
-
-
-
-#####
 
 # Proportions of mortality for each schooling level
 row_profiles <- round(prop.table(contingency_table, margin = 1), 3)
 print(row_profiles)
 
-# Proportions of Schooling for each mortality level
-col_profiles <- round(prop.table(contingency_table, margin = 2), 3)
-print(col_profiles)
-
 # RUN CORRESPONDENCE ANALYSIS (CA)
 res.ca <- CA(contingency_table, graph = FALSE)
 
 # OPTIMAL NUMBER OF COMPONENTS
-#hemen esplikaziyue sartu
+# Dim 1 explains 98.9%, so 1 component is enough
 print(res.ca$eig)
 fviz_eig(res.ca, addlabels = TRUE)
 
@@ -570,7 +552,6 @@ print("Row Contributions:")
 print(res.ca$row$contrib)
 print("Column Contributions:")
 print(res.ca$col$contrib)
-
 
 
 #==============================================================================
