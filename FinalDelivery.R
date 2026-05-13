@@ -402,6 +402,7 @@ plot(model_after_elimination, 5) #residuals vs leverage
 #PREDICTION
 #==============================================================================
 
+set.seed(123) #for reproducibility
 prediction_indexes <- sample(1:nrow(merged_numeric_noutliers2), size = 0.8 * nrow(merged_numeric_noutliers2)) #we select a 80/20 distribution
 
 trainingdt <- merged_numeric_noutliers2[prediction_indexes,] #80% for the training part
@@ -425,10 +426,12 @@ r2test
 #Now, to find the confidence and prediction intervals
 newcountry <- testdt[1,] #we select the first country from our test group
 
+set.seed(123) #for reproducibility
 confidintr <- predict(modeltraining, newdata = newcountry, interval = "confidence")
 exp(confidintr)
 #this would get us the confidence interval for the regular value of ThinnessTeens
 
+set.seed(123) #for reproducibility
 predicintr <- predict(modeltraining, newdata = newcountry, interval = "prediction")
 exp(predicintr)
 #this would get us the prediction interval for the regular value of ThinnessTeens
@@ -557,10 +560,6 @@ corrplot(chi2_test$residuals, is.cor = FALSE,
          title = "Residuals (Blue: Attraction / Red: Repulsion)",
          mar=c(0,0,1,0))
 
-
-
-
-
 #####
 
 # Proportions of mortality for each schooling level
@@ -599,6 +598,7 @@ print(res.ca$col$contrib)
 # We use PCA's first two coordinates, as the previous analysis indicated us the plot was located in comp. 2.
 pca_clusters_data <- res.pca$ind$coord[, 1:2] 
 
+set.seed(123) #for reproducibility
 #We use the elbow method again, in this case to select the number of clusters
 fviz_nbclust(pca_clusters_data, kmeans, method = "wss") +
   # geom_vline(xintercept = 3, linetype = 2) +
@@ -606,15 +606,15 @@ fviz_nbclust(pca_clusters_data, kmeans, method = "wss") +
 #we select 3 (berez 2ra aldatzie eongohuan sieso? bñ azkenien 2tan banaute ya statusekin zakeau adibidez 
 #ordun ns pixket para variar)
 
-# Método de la Silueta (Silhouette Method)
-fviz_nbclust(pca_clusters_data, kmeans, method = "silhouette") +
-  labs(subtitle = "Silhouette method") #bazpare jartzeiat bñ ni putisima idea honek ze eiteiken ze berez
-#suposatzek altuena hartzie komeniko huala ta ns 10 eo 2 komeni dituken, 10 desdeluego ezetz
-
-
 set.seed(123) #for reproducibility
+#Silhouette Method
+fviz_nbclust(pca_clusters_data, kmeans, method = "silhouette") +
+  labs(subtitle = "Silhouette method")
+
+
 km_res <- kmeans(pca_clusters_data, centers = 3, nstart = 25) #as explained earlier 3 centers, and 25 iterations just in case
 
+set.seed(123) #for reproducibility
 #to visualize the results
 fviz_cluster(km_res, data = pca_clusters_data,
              palette = "jco",
@@ -647,29 +647,29 @@ pca_coords <- res.pca$ind$coord[, 1:2]
 #plot the silhouette and the wss plot to see what number of clusters we need to define
 #for each type of clustering methods, partitioning method will use the output of the wss while
 #for the hierarchical method we will use the silhouette plot
+set.seed(123) #for reproducibility
 fviz_nbclust(pca_coords, kmeans, method = "wss")
+
+set.seed(123) #for reproducibility
 fviz_nbclust(pca_coords, kmeans, method = "silhouette")
 
-#partitioning(k-means) 
-#
+#partitioning(k-means) -> 4 clusters
+#hierarchical -> 3 clusters
 
+#we compute the k-means clustering method
 km_res <- kmeans(pca_coords, centers = 4, nstart = 25)
 
+set.seed(123) #for reproducibility
+#we visualize how the clusters are formed
 fviz_cluster(km_res, data = pca_coords, palette = "jco", 
              ellipse = FALSE, geom = c("point", "text"), repel = TRUE,
              ggtheme = theme_minimal())
 
+#prepare the data for hierarchical clustering
 df_final$cluster <- as.factor(km_res$cluster)
 cluster_summary <- df_final %>%
   group_by(cluster) %>%
   summarise(across(where(is.numeric), mean))
-
-contingency_table <- table(merged_ca$Schooling_Level, merged_ca$Mortality_Level)
-chisq.test(contingency_table)
-
-res.ca <- CA(contingency_table, graph = FALSE)
-
-fviz_ca_biplot(res.ca, repel = TRUE, title = "CA: Schooling vs Mortality")
 
 #dendrogram
 
@@ -683,6 +683,7 @@ hc
 # We can plot the dendrogram
 plot(hc)
 
+set.seed(123) #for reproducibility
 # dendrogram totxuo
 fviz_dend(hc,
           k = 3,               
@@ -709,4 +710,3 @@ resumen_clusters <- df_final %>%
   summarise(across(where(is.numeric), mean))
 
 print(resumen_clusters)
-
