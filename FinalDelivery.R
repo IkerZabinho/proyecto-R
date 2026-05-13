@@ -710,3 +710,20 @@ resumen_clusters <- df_final %>%
   summarise(across(where(is.numeric), mean))
 
 print(resumen_clusters)
+
+# We compare k-means(k=4) with hierarchical (k=3)
+table_comp <- table(km_res$cluster, cutree(hc, k = 3))
+colnames(table_comp) <- c("1: Emerging (cyan)", "2: Developed (yellow)", "3: At-Risk (blue)")
+print(table_comp)
+
+countrylist <- data.frame(
+  Country = rownames(df_final),
+  K_means = km_res$cluster,
+  Hierarchical = cutree(hc, k = 3)
+)
+
+countrylist <- countrylist[order(countrylist$K_means), ]
+
+print(countrylist)
+#this helps us compare the cases one by one to understand the process more 
+
