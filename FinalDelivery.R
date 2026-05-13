@@ -3,6 +3,9 @@ library(tidyverse)
 library(tidyr)
 library(FactoMineR)
 library(factoextra)
+library(corrplot)
+library(scales)
+library(ggrepel)
 
 #We read both datasets
 life <- read.csv("LifeExpectancyDataset.csv")
@@ -127,22 +130,38 @@ ggplot(filtered_clean, aes(x = "Male", y = Life.expectancy..men.)) +
        x = "Gender",
        y = "Life Expectancy (years)")
 
-# Scatterplot of Female Life Expectancy and GDP (Preston Curve)
-ggplot(filtered_clean, aes(x = GDP, y = Life.expectancy.women.)) +
-  geom_point(alpha = 0.6) +
-  geom_smooth(method = "lm", color = "red", se = FALSE) +
-  labs(title = "Preston Curve Women: Life Expectancy vs GDP",
-       x = "GDP",
-       y = "Average Life Expectancy (years)")
+df_grouped <-filtered_clean %>%
+  group_by(Country) %>%
+  summarise(
+    GDP = mean(GDP..Current.USD.),
+    Life_expectancy = (mean(Life.expectancy..men.) + mean(Life.expectancy.women.))/2,
+    Status = Status,
+    Population = mean(Population)
+  )
 
-# Scatterplot of Male Life Expectancy and GDP (Preston Curve)
-ggplot(filtered_clean, aes(x = GDP, y = Life.expectancy..men.)) +
-  geom_point(alpha = 0.6) +
-  geom_smooth(method = "lm", color = "red", se = FALSE) +
-  labs(title = "Preston Curve Men: Life Expectancy vs GDP",
-       x = "GDP",
-       y = "Average Life Expectancy (years)")
-filtered
+
+ggplot(df_grouped, aes(x = GDP, y = Life_expectancy, color = Status)) +
+  geom_point(aes(size = Population), alpha = 0.5) + 
+  geom_smooth(method = "loess", color = "black", linetype = "dashed", se = FALSE) +
+  scale_x_log10(
+    breaks = c(1e8, 1e9, 1e10, 1e11, 1e12),
+    labels = c("0.1 B", "1.0 B", "10.0 B", "100.0 B", "1000.0 B")
+  ) + 
+  scale_color_manual(
+    values = c("TRUE" = "cadetblue2", "FALSE" = "coral"),
+    labels = c("Developed", "Developing")
+  ) +
+  theme_minimal() +
+  labs(
+    title = "Preston Curve. Does money buy life?",
+    subtitle = "(Average 2010-2015)",
+    x = "Total GDP - USD (Billions)",
+    y = "Life Expectancy (Years)",
+    color = "Status",
+    size = "Population of country"
+  ) +
+  
+  theme(legend.position = "bottom")
 
 
 
@@ -533,7 +552,6 @@ difer <- contingency_table - tab_independencia
 print(round(difer, 2))
 
 # Corrplot for the attraction/repulsion
-library(corrplot)
 corrplot(chi2_test$residuals, is.cor = FALSE, 
          title = "Residuals (Blue: Attraction / Red: Repulsion)",
          mar=c(0,0,1,0))
