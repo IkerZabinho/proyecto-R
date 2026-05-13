@@ -71,7 +71,7 @@ fviz_pca_ind(res.pca, habillage = 8, addEllipses = TRUE, repel = TRUE, label = "
 res.pca$var$contrib[,1]
 
 
-#### CORRESPONDECE ANALYSIS - CA ######
+#### CORRESPONDENCE ANALYSIS - CA ######
 
 # Create levels for Schooling and Mortality (3 categories each)
 merged_ca <- merged %>%
@@ -96,21 +96,48 @@ contingency_table <- table(merged_ca$Schooling_Level, merged_ca$Mortality_Level)
 print(contingency_table)
 
 # Chi-Square Independence Test)
-# p-value > 0.05 indicates independace between categories
+# p-value > 0.05 indicates independence between categories
 chi2_test <- chisq.test(contingency_table)
-print(chi2_test) #pvalue equals 0.2256, which indicates us that the link is really weak (independence)
-#the schooling of a country does not help us predict the mortality.
+print(chi2_test) #pvalue equals 0.02951, which indicates us that, being lower than 
+# 0.05 there is dependency between schooling and mortality level.
 
+#the schooling of a country does not help us predict the mortality.
+####independence table: observed - expected
+tab_independencia <- chi2_test$expected
+
+print("Table under independence (expected values):")
+print(round(tab_independencia, 2))
+
+# we see the difference
+# if positive, attracted, else, repelled.
+difer <- contingency_table - tab_independencia
+print(round(difer, 2))
+
+# Corrplot for the attraction/repulsion
+library(corrplot)
+corrplot(chi2_test$residuals, is.cor = FALSE, 
+         title = "Residuals (Blue: Attraction / Red: Repulsion)",
+         mar=c(0,0,1,0))
+
+
+
+
+
+#####
 
 # Proportions of mortality for each schooling level
 row_profiles <- round(prop.table(contingency_table, margin = 1), 3)
 print(row_profiles)
 
+# Proportions of Schooling for each mortality level
+col_profiles <- round(prop.table(contingency_table, margin = 2), 3)
+print(col_profiles)
+
 # RUN CORRESPONDENCE ANALYSIS (CA)
 res.ca <- CA(contingency_table, graph = FALSE)
 
 # OPTIMAL NUMBER OF COMPONENTS
-# Dim 1 explains 98.9%, so 1 component is enough
+#hemen esplikaziyue sartu
 print(res.ca$eig)
 fviz_eig(res.ca, addlabels = TRUE)
 
@@ -156,18 +183,16 @@ fviz_cluster(km_res, data = pca_clusters_data,
              ggtheme = theme_minimal(),
              main = "K-means Clustering on PCA Dimensions")
 
-# df_pca_raw <- pca_clusters_data
-# 
-# #in which cluster is each country? 
-# df_pca_raw$cluster <- as.factor(km_res$cluster)
-# 
-# # Table with the variables used in the pca and the countries that have been clustered
-# cluster_interpretation <- df_pca_raw %>%
-#   group_by(cluster) %>%
-#   summarise(across(where(is.numeric), mean)) %>%
-#   arrange(desc(LifeExpectancyMen))
-# 
-# print(cluster_interpretation)
+#in which cluster is each country? 
+df_pca_raw$cluster <- as.factor(km_res$cluster)
+
+# Table with the variables used in the pca and the countries that have been clustered
+cluster_interpretation <- df_pca_raw %>%
+  group_by(cluster) %>%
+  summarise(across(where(is.numeric), mean)) %>%
+  arrange(desc(LifeExpectancyMen))
+
+print(cluster_interpretation)
 
 
 
@@ -190,6 +215,15 @@ cluster_summary <- df_final %>%
   group_by(cluster) %>%
   summarise(across(where(is.numeric), mean))
 
+merged_ca <- df_grouped %>%
+  mutate(
+    Schooling_Level = cut(Schooling, breaks = c(0, 10, 14, 22), 
+                          labels = c("Low_School", "Mid_School", "High_School")),
+    Mortality_Level = cut(AdultMortalityMen, breaks = 3, 
+                          labels = c("Low_Mort", "Med_Mort", "High_Mort"))
+  ) %>%
+  drop_na(Schooling_Level, Mortality_Level)
+
 contingency_table <- table(merged_ca$Schooling_Level, merged_ca$Mortality_Level)
 chisq.test(contingency_table)
 
@@ -210,10 +244,10 @@ hc
 plot(hc)
 
 # dendrogram totxuo
-fviz_dend(hc,
+fviz_dend(hc, 
           k = 3,                 # El número de grupos que quieres colorear
-          cex = 0.4,             # Tamaño de la fuente para los países
-          lwd = 0.01,             # Grosor de las líneas (finito como pediste)
+          cex = 0.52,             # Tamaño de la fuente para los países
+          lwd = 0.1,             # Grosor de las líneas (finito como pediste)
           k_colors = c("#2E9FDF", "#00AFBB", "#E7B800"), # Colores para cada cluster
           color_labels_by_k = TRUE, # Colorea también los nombres de los países
           rect = F,           # Añade el recuadro alrededor de cada grupo
@@ -237,3 +271,6 @@ resumen_clusters <- df_final %>%
   summarise(across(where(is.numeric), mean))
 
 print(resumen_clusters)
+
+
+
