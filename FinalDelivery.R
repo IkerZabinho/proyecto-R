@@ -658,30 +658,3 @@ resumen_clusters <- df_final %>%
 
 print(resumen_clusters)
 
-
-library(scales)
-
-ggplot(df_grouped, aes(x = GDPCurrentUSD, y = LifeExpectancyMen, color = Status)) +
-  geom_point(aes(size = Schooling), alpha = 0.5) + 
-  geom_smooth(method = "loess", color = "black", linetype = "dashed", se = FALSE) +
-  
-  scale_x_log10(
-    breaks = c(1e8, 1e9, 1e10, 1e11, 1e12),
-    labels = c("0.1 B", "1.0 B", "10.0 B", "100.0 B", "1000.0 B")
-  ) + 
-  scale_color_manual(
-    values = c("TRUE" = "#4DBBD5FF", "FALSE" = "#E64B35B2"),
-    labels = c("Developed", "Developing")
-  ) +
-  scale_size_continuous(range = c(1, 10)) + 
-  theme_minimal() +
-  labs(
-    title = "Preston Curve. Does money buy life?",
-    subtitle = "(Average 2010-2015)",
-    x = "Total GDP - USD (Billions)",
-    y = "Life Expectancy (Years)",
-    color = "Status",
-    size = "Years of Schooling"
-  ) +
-
-  theme(legend.position = "bottom")
