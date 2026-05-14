@@ -14,11 +14,11 @@ life <- read.csv("LifeExpectancyDataset.csv")
 economic <- read.csv("economic_data.csv")
 
 #In this part, as both datasets can possibly have the countries listed in a different way,
-# we look them up manually, so that we can see the ones spelt differently and transform them
+# we look them up manually, so that we can see the ones spelled differently and transform them
 unique(life$Country) 
 unique(economic$country_name)
 
-#We convert to lowercase and remove whitespace to simplify the process
+#We convert to lowercase and remove white space to simplify the process
 life <- life %>% mutate(Country = tolower(trimws(Country)))
 economic <- economic %>% mutate(country_name = tolower(trimws(country_name)))
 
@@ -48,20 +48,20 @@ mapa_paises <- c(
   "yemen" = "yemen rep."
 )
 #If a country contains either of those names, we make them understand it is the same country,
-# so that the data can be appropriately merged
+#so that the data can be appropriately merged
 life <- life %>% 
   mutate(Country = ifelse(Country %in% names(mapa_paises),
                           mapa_paises[Country], Country))
 
 #We merge both datasets by Country name and Year, now that we have assured that the country
-# names cannot suppose any problem.
+#names cannot suppose any problem.
 merged <- inner_join(life, economic, by=c("Country" = "country_name", "Year" = "year"))
 
 
 #Even though by doing an inner join the data that has been merged is supposedly
-# the one between 2010 and 2015 (as those are the years that are coincidental
-# in both datasets), we filter it just in case there are missing values or any
-# false values that accidentally got in
+#the one between 2010 and 2015 (as those are the years that are coincidental
+#in both datasets), we filter it just in case there are missing values or any
+#false values that accidentally got in
 filtered <- merged %>% 
   filter(Year>=2010 & Year<=2015)
 
@@ -162,26 +162,7 @@ ggplot(df_grouped, aes(x = GDP, y = Life_expectancy, color = Status)) +
     color = "Status",
     size = "Population of country"
   ) +
-  
   theme(legend.position = "bottom")
-
-
-
-###########################
-numeric_df <- filtered_clean[, sapply(filtered_clean, is.numeric)]
-
-x <- model.matrix(~ Life.expectancy..men. + Life.expectancy.women.,
-                  data = filtered_clean)
-
-y <- filtered_clean$GDP
-
-solve(t(x) %*% x) %*% t(x) %*% y
-
-mod <- lm(y ~ x-1,
-          data = filtered_clean)
-
-mod_s <- summary(mod)
-names(mod_s)
 
 
 #####################################################################
@@ -229,7 +210,7 @@ merged <- setNames(merged, new_names)
 #First of all we select the numeric values from the merged dataset
 merged_numeric <- merged[,sapply(merged, is.numeric)]
 
-#Here we eliminate the ThinnessKids column because it doesnt make sense having it in the model
+#Here we eliminate the ThinnessKids column because it does not make sense having it in the model
 #As well as the year column
 merged_numeric <- merged_numeric %>%
   select(-ThinnessKids, -Year) %>%
@@ -465,28 +446,33 @@ merged <- setNames(merged, new_names)
 #==============================================================================
 #PCA
 #==============================================================================
-# We group by Country to create structural profiles
+#We group the dataset by Country and status to create structural profiles
 df_grouped <- merged %>%
   group_by(Country, Status) %>%
   summarise(across(where(is.numeric), function(x) mean(x, na.rm = TRUE)), .groups = "drop")
 
 # Selecting 7 numeric variables and a categorical one (Status)
+#As the PCA is not suited for categorical values the status variable
+#will be ignored and only used for visualization purposes at the end
 df_pca_data <- df_grouped %>% 
   select(Country, LifeExpectancyMen, AdultMortalityMen, Schooling, 
          GDPCurrentUSD, Alcohol, BMI, HIV, Status) %>%
   drop_na()
 
-# Setting Country as row names for identification in plots
+# Setting Country as row names for better identification in plots
 df_final <- as.data.frame(df_pca_data)
 rownames(df_final) <- df_final$Country
 df_final <- df_final %>% select(-Country)
 
-# Status (column 8 in df_final) is set as a supplementary qualitative variable
+#Status (column 8 in df_final) is set as a supplementary qualitative variable
+#as said before, it is only going to be used at the moment of visualizing
 res.pca <- PCA(df_final, quali.sup = 8, scale.unit = TRUE, graph = FALSE)
 
 # Eigenvalues check. We want to see if the components are optimal ( > 1)
 print("Eigenvalues")
-print(res.pca$eig) 
+print(res.pca$eig)
+
+#We can see that the components selected, in this case 1 and 2, are > 1
 
 # Check which variables contribute most to Dim 1
 print("Contributions to Dimension 1")
@@ -498,6 +484,8 @@ print(res.pca$var$cos2)
 
 # Elbow Plot visualization
 fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 50))
+#as expected, the first two variables already explain 57% of the variance
+#which is pretty high
 
 # Correlation Circle visualization
 fviz_pca_var(res.pca, col.var = "contrib", 
@@ -513,7 +501,8 @@ res.pca$var$contrib[,1]
 #CORRESPONDENCE ANALISYS
 #==============================================================================
 
-# Create levels for Schooling and Mortality (3 categories each)
+# Create levels for Schooling and Mortality (3 categories each) as well as grouping by country
+#as it doesnt make sense to compare a country in 2011 with itself but two years later
 merged_ca <- merged %>%
   group_by(Country) %>%
   summarise(
@@ -530,8 +519,6 @@ merged_ca <- merged %>%
   ) %>%
   drop_na(Schooling_Level, Mortality_Level)
 
-
-
 # Contingency Table - Observed frequencies between Schooling and Mortality
 contingency_table <- table(merged_ca$Schooling_Level, merged_ca$Mortality_Level)
 print(contingency_table)
@@ -540,13 +527,15 @@ print(contingency_table)
 # p-value > 0.05 indicates independence between categories
 chi2_test <- chisq.test(contingency_table)
 print(chi2_test) #p-value equals 0.02951, this is lower than 0.05 so these tells 
-#us that there is dependency between schooling and mortality level.
+#us that there is dependency between schooling and mortality level as we can not 
+#reject the null hypothesis which tells us the variables are independant.
 
-#the schooling of a country does not help us predict the mortality.
+#the schooling rate of a country does not help us predict the mortality at all.
 
 ####independence table: observed - expected
 tab_independencia <- chi2_test$expected
 
+#In this table we can see which were the values expected for our contingency table
 print("Table under independence (expected values):")
 print(round(tab_independencia, 2))
 
@@ -571,10 +560,10 @@ col_profiles <- round(prop.table(contingency_table, margin = 2), 3)
 print(col_profiles)
 
 # RUN CORRESPONDENCE ANALYSIS (CA)
+#Here we run the CA with the values we actually got
 res.ca <- CA(contingency_table, graph = FALSE)
 
 # OPTIMAL NUMBER OF COMPONENTS
-#hemen esplikaziyue sartu
 print(res.ca$eig)
 fviz_eig(res.ca, addlabels = TRUE)
 
@@ -584,69 +573,22 @@ fviz_ca_biplot(res.ca, repel = TRUE,
                title = "CA Biplot: Schooling vs Mortality")
 
 # CONTRIBUTIONS
-# 'Low_School' and 'Low_Mort' define the main axis (Dim 1)
+# 'Low_School' and 'High_Mort' define the main axis (Dim 1)
 print("Row Contributions:")
 print(res.ca$row$contrib)
 print("Column Contributions:")
 print(res.ca$col$contrib)
 
 #==============================================================================
-#K-MEANS
+#CLUSTERING: HIERARCHICAL
 #==============================================================================
 
-
-# We use PCA's first two coordinates, as the previous analysis indicated us the plot was located in comp. 2.
-pca_clusters_data <- res.pca$ind$coord[, 1:2] 
-
-set.seed(123) #for reproducibility
-#We use the elbow method again, in this case to select the number of clusters
-fviz_nbclust(pca_clusters_data, kmeans, method = "wss") +
-  # geom_vline(xintercept = 3, linetype = 2) +
-  labs(subtitle = "Elbow method") 
-#we select 3 (berez 2ra aldatzie eongohuan sieso? bñ azkenien 2tan banaute ya statusekin zakeau adibidez 
-#ordun ns pixket para variar)
-
-set.seed(123) #for reproducibility
-#Silhouette Method
-fviz_nbclust(pca_clusters_data, kmeans, method = "silhouette") +
-  labs(subtitle = "Silhouette method")
-
-
-km_res <- kmeans(pca_clusters_data, centers = 3, nstart = 25) #as explained earlier 3 centers, and 25 iterations just in case
-
-set.seed(123) #for reproducibility
-#to visualize the results
-fviz_cluster(km_res, data = pca_clusters_data,
-             palette = "jco",
-             ellipse = FALSE, #ellipse.type = CONVEX jartzie ziok ta clusterran perimetrue margotu bezela eiteik
-             ggtheme = theme_minimal(),
-             main = "K-means Clustering on PCA Dimensions")
-
-# df_pca_raw <- pca_clusters_data
-# 
-# #in which cluster is each country?
-# df_pca_raw$cluster <- as.factor(km_res$cluster)
-# 
-# # Table with the variables used in the pca and the countries that have been clustered
-# cluster_interpretation <- df_pca_raw %>%
-#   group_by(cluster) %>%
-#   summarise(across(where(is.numeric), mean)) %>%
-#   arrange(desc(LifeExpectancyMen))
-# 
-# print(cluster_interpretation)
-
-
-
-#==============================================================================
-#CLUSTERING
-#==============================================================================
-
-#Take the coordinates of the oints after the pca
+#Take the coordinates of the points obtained after the pca
 pca_coords <- res.pca$ind$coord[, 1:2]
 
 #plot the silhouette and the wss plot to see what number of clusters we need to define
 #for each type of clustering methods, partitioning method will use the output of the wss while
-#for the hierarchical method we will use the silhouette plot
+#for the hierarchical method we will use the silhouette plots output
 set.seed(123) #for reproducibility
 fviz_nbclust(pca_coords, kmeans, method = "wss")
 
@@ -677,14 +619,14 @@ pca_data <- res.pca$ind$coord #we create the distance matrix
 distance_matrix <- dist(pca_data, method = "euclidean")
 
 
-# Then, we apply the hclust function choosing the method (complete/single/...)
+# Then, we apply the hclust function choosing the method complete
 hc <-  hclust(distance_matrix, method = "complete")
 hc
-# We can plot the dendrogram
+# We can now plot the dendrogram
 plot(hc)
 
 set.seed(123) #for reproducibility
-# dendrogram totxuo
+# a visualer dendrogram to see clearly the three clusters
 fviz_dend(hc,
           k = 3,               
           cex = 0.7,           
@@ -698,7 +640,7 @@ fviz_dend(hc,
           ggtheme = theme_minimal() + theme(legend.position = "none"))
 
 
-# Cortamos el árbol en 3 grupos
+#We "cut" the tree when it reaches three groups/clusters
 grupos <- cutree(hc, k = 3)
 
 # Añadimos los grupos al dataframe original para ver las medias
@@ -730,6 +672,7 @@ print(countrylist)
 
 #==============================================================================
 # CLUSTER VISUALIZATION (BOXPLOTS)
+#==============================================================================
 
 # Colors to be used for the plots
 cols_km <- c("#7CAE00", "#0011EE", "#C77CFF", "#F8766D")
