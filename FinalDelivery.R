@@ -727,3 +727,56 @@ countrylist <- countrylist[order(countrylist$K_means), ]
 print(countrylist)
 #this helps us compare the cases one by one to understand the process more 
 
+
+#==============================================================================
+# CLUSTER VISUALIZATION (BOXPLOTS)
+
+# Colors to be used for the plots
+cols_km <- c("#7CAE00", "#0011EE", "#C77CFF", "#F8766D")
+cols_hc <- c("#2E9FDF", "#00AFBB", "#E7B800")
+df_final$log_GDP <- log(df_final$GDPCurrentUSD)
+
+# K-means: Schooling 
+p1 <- ggplot(df_final, aes(x = cluster, y = Schooling, fill = cluster)) +
+  geom_boxplot(alpha = 0.7) + scale_fill_manual(values = cols_km) +
+  labs(title = "K-means Clustering: Schooling Distribution (k=4)", x = "K-means Cluster", y = "Years of Schooling") +
+  theme_minimal() + theme(legend.position = "none")
+
+# Hierarchical: Schooling 
+p2 <- ggplot(df_final, aes(x = cluster_jerarquico, y = Schooling, fill = cluster_jerarquico)) +
+  geom_boxplot(alpha = 0.7) + scale_fill_manual(values = cols_hc) +
+  labs(title = "Hierarchical Clustering: Schooling Distribution (k=3)", x = "Hierarchical Cluster", y = "Years of Schooling") +
+  theme_minimal() + theme(legend.position = "none")
+
+# K-means: HIV 
+p3 <- ggplot(df_final, aes(x = cluster, y = HIV, fill = cluster)) +
+  geom_boxplot(alpha = 0.7) + scale_fill_manual(values = cols_km) +
+  scale_y_log10() + # Escala logarítmica para ver valores de 0.1 y 5 al mismo tiempo
+  labs(title = "K-means: HIV Prevalence", x = "Cluster", y = "HIV (%)") +
+  theme_minimal() + theme(legend.position = "none")
+
+# Hierarchical: HIV
+p4 <- ggplot(df_final, aes(x = cluster_jerarquico, y = HIV, fill = cluster_jerarquico)) +
+  geom_boxplot(alpha = 0.7) + scale_fill_manual(values = cols_hc) +
+  scale_y_log10() + 
+  labs(title = "Hierarchical: HIV Prevalence", x = "Cluster", y = "HIV (%)") +
+  theme_minimal() + theme(legend.position = "none")
+
+# K-means: GDP
+p5 <- ggplot(df_final, aes(x = cluster, y = log_GDP, fill = cluster)) +
+  geom_boxplot(alpha = 0.7) + scale_fill_manual(values = cols_km) +
+  labs(title = "K-means Clustering: GDP", x = "K-means Cluster", y = "Log GDP (USD)") +
+  theme_minimal() + theme(legend.position = "none")
+
+# Hierarchical: GDP
+p6 <- ggplot(df_final, aes(x = cluster_jerarquico, y = log_GDP, fill = cluster_jerarquico)) +
+  geom_boxplot(alpha = 0.7) + scale_fill_manual(values = cols_hc) +
+  labs(title = "Hierarchical Clustering: GDP", x = "Hierarchical Cluster", y = "Log GDP (USD)") +
+  theme_minimal() + theme(legend.position = "none")
+
+print(p1)
+print(p2)
+print(p3)
+print(p4)
+print(p5)
+print(p6)
